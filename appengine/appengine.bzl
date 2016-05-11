@@ -161,11 +161,12 @@ def _war_impl(ctxt):
       for jar in ctxt.files._appengine_jars
       ]
   substitutions = {
-    "%{zipper}": ctxt.file._zipper.short_path,
-    "%{war}": ctxt.outputs.war.short_path,
-    "%{java}": ctxt.file._java.short_path,
-    "%{appengine_sdk}": appengine_sdk,
-    "%{classpath}":  (":".join(classpath)),
+      "%{workspace_name}" : ctxt.workspace_name,
+      "%{zipper}": ctxt.file._zipper.short_path,
+      "%{war}": ctxt.outputs.war.short_path,
+      "%{java}": ctxt.file._java.short_path,
+      "%{appengine_sdk}": appengine_sdk,
+      "%{classpath}":  (":".join(classpath)),
   }
   ctxt.template_action(
       output = executable,

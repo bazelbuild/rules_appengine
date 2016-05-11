@@ -19,8 +19,8 @@ case "$0" in
 esac
 
 if [[ -z "$JAVA_RUNFILES" ]]; then
-  if [[ -e "${self}.runfiles" ]]; then
-    JAVA_RUNFILES="${self}.runfiles"
+  if [[ -e "${self}.runfiles/%{workspace_name}" ]]; then
+    JAVA_RUNFILES="${self}.runfiles/%{workspace_name}"
   fi
 fi
 
