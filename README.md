@@ -26,7 +26,8 @@ available to Bazel. The easiest way to do so is by adding the following to your
 git_repository(
     name = "io_bazel_rules_appengine",
     remote = "https://github.com/bazelbuild/rules_appengine.git",
-    tag = "0.0.2",
+    # Check https://github.com/bazelbuild/rules_appengine/releases for the latest version.
+    tag = "1.2.3",
 )
 load("@io_bazel_rules_appengine//appengine:appengine.bzl", "appengine_repositories")
 appengine_repositories()
