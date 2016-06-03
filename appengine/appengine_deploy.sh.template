@@ -30,7 +30,7 @@ root_path=$(pwd)
 tmp_dir=$(mktemp -d ${TMPDIR:-/tmp}/war.XXXXXXXX)
 trap "{ cd ${root_path}; rm -rf ${tmp_dir}; }" EXIT
 cd ${tmp_dir}
-${JAVA_RUNFILES}/%{zipper} x ${JAVA_RUNFILES}/%{war}
+${JAVA_RUNFILES}/%{workspace_name}/%{zipper} x ${JAVA_RUNFILES}/%{workspace_name}/%{war}
 cd ${root_dir}
 
 APP_ENGINE_ROOT=${JAVA_RUNFILES}/%{appengine_sdk}

@@ -155,6 +155,8 @@ def _war_impl(ctxt):
       appengine_sdk = f.path
     elif not f.path.startswith(appengine_sdk):
       appengine_sdk = _common_substring(appengine_sdk, f.path)
+  # Strip leading external/
+  appengine_sdk = "/".join(appengine_sdk.split("/")[1:])
 
   classpath = [
       "${JAVA_RUNFILES}/%s" % jar.short_path
@@ -205,10 +207,10 @@ appengine_war = rule(
             single_file = True,
         ),
         "_appengine_sdk": attr.label(
-            default = Label("//external:appengine/java/sdk"),
+            default = Label("@com_google_appengine_java//:sdk"),
         ),
         "_appengine_jars": attr.label(
-            default = Label("//external:appengine/java/jars"),
+            default = Label("@com_google_appengine_java//:jars"),
         ),
         "_appengine_deps": attr.label_list(
             default = [Label("@com_google_appengine_java//:api")],
