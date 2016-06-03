@@ -33,7 +33,7 @@ cd ${tmp_dir}
 ${JAVA_RUNFILES}/%{workspace_name}/%{zipper} x ${JAVA_RUNFILES}/%{workspace_name}/%{war}
 cd ${root_dir}
 
-APP_ENGINE_ROOT=${JAVA_RUNFILES}/%{appengine_sdk}
+APP_ENGINE_ROOT=${JAVA_RUNFILES}/%{workspace_name}/%{appengine_sdk}
 if [ -n "${1-}" ]; then
   ${APP_ENGINE_ROOT}/bin/appcfg.sh -A "$1" update ${tmp_dir}
   retCode=$?
