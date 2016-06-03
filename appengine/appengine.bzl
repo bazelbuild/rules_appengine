@@ -152,11 +152,9 @@ def _war_impl(ctxt):
   appengine_sdk = None
   for f in ctxt.files._appengine_sdk:
     if not appengine_sdk:
-      appengine_sdk = f.path
+      appengine_sdk = f.short_path
     elif not f.path.startswith(appengine_sdk):
-      appengine_sdk = _common_substring(appengine_sdk, f.path)
-  # Strip leading external/
-  appengine_sdk = "/".join(appengine_sdk.split("/")[1:])
+      appengine_sdk = _common_substring(appengine_sdk, f.short_path)
 
   classpath = [
       "${JAVA_RUNFILES}/%s" % jar.short_path
@@ -265,21 +263,6 @@ def appengine_repositories():
       url = "http://central.maven.org/maven2/com/google/appengine/appengine-java-sdk/1.9.34/appengine-java-sdk-1.9.34.zip",
       sha256 = "34e828bf64b48c7dc212b6cb82d67c32d42b75c988d793b97bae5fda849ce486",
       build_file_content = APPENGINE_BUILD_FILE,
-  )
-
-  native.bind(
-      name = "appengine/java/sdk",
-      actual = "@com_google_appengine_java//:sdk",
-  )
-
-  native.bind(
-      name = "appengine/java/api",
-      actual = "@com_google_appengine_java//:api",
-  )
-
-  native.bind(
-      name = "appengine/java/jars",
-      actual = "@com_google_appengine_java//:jars",
   )
 
   native.maven_jar(

@@ -36,7 +36,7 @@ if [[ ! -x ${jvm_bin} ]]; then
   jvm_bin=$(which java)
 fi
 
-APP_ENGINE_ROOT=${self}.runfiles/%{appengine_sdk}
+APP_ENGINE_ROOT=${JAVA_RUNFILES}/%{appengine_sdk}
 main_class="com.google.appengine.tools.development.DevAppServerMain"
 classpath="%{classpath}"
 
