@@ -234,33 +234,37 @@ def java_war(name, data=[], data_path=None, **kwargs):
                 data=data,
                 data_path=data_path)
 
+APPENGINE_VERSION = "1.9.38"
+
+APPENGINE_DIR = "appengine-java-sdk-" + APPENGINE_VERSION
+
 APPENGINE_BUILD_FILE = """
 # BUILD file to use the Java AppEngine SDK with a remote repository.
 java_import(
     name = "jars",
-    jars = glob(["appengine-java-sdk-1.9.38/lib/**/*.jar"]),
+    jars = glob(["%s/lib/**/*.jar"]),
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "api",
-    jars = ["appengine-java-sdk-1.9.38/lib/impl/appengine-api.jar"],
+    jars = ["%s/lib/impl/appengine-api.jar"],
     visibility = ["//visibility:public"],
     neverlink = 1,
 )
 
 filegroup(
     name = "sdk",
-    srcs = glob(["appengine-java-sdk-1.9.38/**"]),
+    srcs = glob(["%s/**"]),
     visibility = ["//visibility:public"],
-    path = "appengine-java-sdk-1.9.38",
+    path = "%s",
 )
-"""
+""" % (APPENGINE_DIR, APPENGINE_DIR, APPENGINE_DIR, APPENGINE_DIR)
 
 def appengine_repositories():
   native.new_http_archive(
       name = "com_google_appengine_java",
-      url = "http://central.maven.org/maven2/com/google/appengine/appengine-java-sdk/1.9.38/appengine-java-sdk-1.9.38.zip",
+      url = "http://central.maven.org/maven2/com/google/appengine/appengine-java-sdk/%s/%s.zip" % (APPENGINE_VERSION, APPENGINE_DIR),
       sha256 = "189ec08943f6d09e4a30c6f86382a9d15b61226f042ee4b7c066b2466fd980c4",
       build_file_content = APPENGINE_BUILD_FILE,
   )
