@@ -2,19 +2,19 @@ load("//appengine:appengine.bzl", "appengine_war")
 
 appengine_war(
     name = "test-war",
-    data = [":test-data"],
-    data_path = "/test/data",
+    data = [
+        ":web-inf",
+        "//test/data:gen-data",
+        "//test/data:test-data",
+    ],
+    data_path = "/test",
     jars = [":app_deploy.jar"],
+    testonly = 1,
 )
 
 java_binary(
     name = "app",
     main_class = "dummy",
-)
-
-filegroup(
-    name = "test-data",
-    srcs = glob(["data/**"]),
 )
 
 sh_test(
@@ -25,4 +25,9 @@ sh_test(
         "@local_jdk//:jdk-default",
         ":test-war",
     ],
+)
+
+filegroup(
+    name = "web-inf",
+    srcs = glob(["WEB-INF/*"]),
 )
