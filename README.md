@@ -234,3 +234,12 @@ java_war(name, data, data_path, **kwargs)
     </tr>
   </tbody>
 </table>
+
+# Using a local AppEngine SDK
+
+You can, optionally, specify the environment variable APPENGINE_SDK_PATH to use
+an SDK that is on your filesystem (instead of downloading a new one).
+
+```
+APPENGINE_SDK_PATH=/path/to/appengine-java-sdk-1.9.38 bazel build //whatever
+```

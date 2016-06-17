@@ -241,32 +241,48 @@ APPENGINE_BUILD_FILE = """
 # BUILD file to use the Java AppEngine SDK with a remote repository.
 java_import(
     name = "jars",
-    jars = glob(["lib/**/*.jar"]),
+    jars = glob(["%s/lib/**/*.jar"]),
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "api",
-    jars = ["lib/impl/appengine-api.jar"],
+    jars = ["%s/lib/impl/appengine-api.jar"],
     visibility = ["//visibility:public"],
     neverlink = 1,
 )
 
 filegroup(
     name = "sdk",
-    srcs = glob(["**"]),
+    srcs = glob(["%s/**"]),
     visibility = ["//visibility:public"],
+    path = "%s",
 )
-"""
+""" % (APPENGINE_DIR, APPENGINE_DIR, APPENGINE_DIR, APPENGINE_DIR)
+
+def _find_locally_or_download_impl(repository_ctx):
+  if 'APPENGINE_SDK_PATH' in repository_ctx.os.environ:
+    path = repository_ctx.os.environ['APPENGINE_SDK_PATH']
+    if path == "":
+      fail("APPENGINE_SDK_PATH set, but empty")
+    repository_ctx.symlink(path, APPENGINE_DIR)
+  else:
+    # Due to a bug in 0.3.0, we have to create the directory before downloading
+    # the file.
+    repository_ctx.file("dummy")
+    repository_ctx.download_and_extract(
+     "http://central.maven.org/maven2/com/google/appengine/appengine-java-sdk/%s/%s.zip" % (APPENGINE_VERSION, APPENGINE_DIR),
+     ".", "189ec08943f6d09e4a30c6f86382a9d15b61226f042ee4b7c066b2466fd980c4",
+     "", "")
+  repository_ctx.file("BUILD", APPENGINE_BUILD_FILE)
+
+_find_locally_or_download = repository_rule(
+    local = False,
+    implementation = _find_locally_or_download_impl,
+)
 
 def appengine_repositories():
-  native.new_http_archive(
-      name = "com_google_appengine_java",
-      url = "http://central.maven.org/maven2/com/google/appengine/appengine-java-sdk/%s/%s.zip" % (APPENGINE_VERSION, APPENGINE_DIR),
-      sha256 = "189ec08943f6d09e4a30c6f86382a9d15b61226f042ee4b7c066b2466fd980c4",
-      build_file_content = APPENGINE_BUILD_FILE,
-      strip_prefix = APPENGINE_DIR,
-  )
+  _find_locally_or_download(name = "com_google_appengine_java")
 
   native.maven_jar(
       name = "javax_servlet_api",
