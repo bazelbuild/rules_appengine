@@ -241,24 +241,23 @@ APPENGINE_BUILD_FILE = """
 # BUILD file to use the Java AppEngine SDK with a remote repository.
 java_import(
     name = "jars",
-    jars = glob(["%s/lib/**/*.jar"]),
+    jars = glob(["lib/**/*.jar"]),
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "api",
-    jars = ["%s/lib/impl/appengine-api.jar"],
+    jars = ["lib/impl/appengine-api.jar"],
     visibility = ["//visibility:public"],
     neverlink = 1,
 )
 
 filegroup(
     name = "sdk",
-    srcs = glob(["%s/**"]),
+    srcs = glob(["**"]),
     visibility = ["//visibility:public"],
-    path = "%s",
 )
-""" % (APPENGINE_DIR, APPENGINE_DIR, APPENGINE_DIR, APPENGINE_DIR)
+"""
 
 def appengine_repositories():
   native.new_http_archive(
@@ -266,6 +265,7 @@ def appengine_repositories():
       url = "http://central.maven.org/maven2/com/google/appengine/appengine-java-sdk/%s/%s.zip" % (APPENGINE_VERSION, APPENGINE_DIR),
       sha256 = "189ec08943f6d09e4a30c6f86382a9d15b61226f042ee4b7c066b2466fd980c4",
       build_file_content = APPENGINE_BUILD_FILE,
+      strip_prefix = APPENGINE_DIR,
   )
 
   native.maven_jar(
