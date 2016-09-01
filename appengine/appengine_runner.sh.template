@@ -24,12 +24,12 @@ if [[ -z "$JAVA_RUNFILES" ]]; then
   fi
 fi
 
-jvm_bin=${JAVA_RUNFILES}/%{java}
+jvm_bin="${JAVA_RUNFILES}/%{java}"
 if [[ ! -x ${jvm_bin} ]]; then
   jvm_bin=$(which java)
 fi
 
-APP_ENGINE_ROOT=${JAVA_RUNFILES}/%{appengine_sdk}
+APP_ENGINE_ROOT="${JAVA_RUNFILES}/%{appengine_sdk}"
 main_class="com.google.appengine.tools.development.DevAppServerMain"
 classpath="%{classpath}"
 
@@ -41,12 +41,51 @@ classpath="%{classpath}"
 cd "%{data_path}"
 
 mkdir -p WEB-INF/lib
-for i in $(echo $classpath | tr ":" "\n")
-do
-    jar="WEB-INF/lib/$(basename $i)"
-    rm -f "$jar"
-    ln -s "$i" "$jar"
+for i in $(echo $classpath | tr ":" "\n"); do
+  jar="WEB-INF/lib/$(basename "$i")"
+  rm -f "$jar"
+  ln -s "$i" "$jar"
 done
 
-${jvm_bin} -Dappengine.sdk.root=${APP_ENGINE_ROOT} -cp "${classpath}" \
-    ${main_class} "." "$@"
+JVM_FLAGS_CMDLINE=()
+
+# Processes an argument for the wrapper. Returns 0 if the given argument
+# was recognized as an argument for this wrapper, and 1 if it was not.
+function process_wrapper_argument() {
+  case "$1" in
+    --jvm_flag=*) JVM_FLAGS_CMDLINE+=( "${1#--jvm_flag=}" ) ;;
+    --jvm_flags=*) JVM_FLAGS_CMDLINE+=( ${1#--jvm_flags=} ) ;;
+    *)
+      return 1 ;;
+  esac
+  return 0
+}
+
+# Parse arguments sequentially until the first unrecognized arg is encountered.
+# Scan the remaining args for --wrapper_script_flag=X options and process them.
+ARGS=()
+for ARG in "$@"; do
+  if [[ "$ARG" == --wrapper_script_flag=* ]]; then
+    process_wrapper_argument "${ARG#--wrapper_script_flag=}" \
+      || die "invalid wrapper argument '%s'" "$ARG"
+  elif [[ "${#ARGS}" -gt 0 ]] || ! process_wrapper_argument "$ARG"; then
+    ARGS+=( "$ARG" )
+  fi
+done
+
+ARGS=(
+  ${JVM_FLAGS}
+  "${JVM_FLAGS_CMDLINE[@]}"
+  "-Dappengine.sdk.root=${APP_ENGINE_ROOT}"
+  ${main_class}
+  .
+  "${ARGS[@]}"
+)
+
+# Linux per-arg limit MAX_ARG_STRLEN == 128k!
+if (("${#classpath}" > 120000)); then
+  set +o posix  # Enable process substitution.
+  exec "${jvm_bin}" -classpath @<(echo "${classpath}") "${ARGS[@]}"
+else
+  exec "${jvm_bin}" -classpath "${classpath}" "${ARGS[@]}"
+fi
