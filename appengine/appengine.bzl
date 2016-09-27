@@ -154,11 +154,15 @@ def _war_impl(ctxt):
       appengine_sdk = f.short_path
     elif not f.path.startswith(appengine_sdk):
       appengine_sdk = _common_substring(appengine_sdk, f.short_path)
+  if not appengine_sdk:
+    fail("Could not find appengine files")
 
-  classpath = [
+  classpath = ["${JAVA_RUNFILES}/%s" % jar.short_path for jar in transitive_deps]
+  classpath += [
       "${JAVA_RUNFILES}/%s" % jar.short_path
-      for jar in ctxt.files._appengine_jars
-      ]
+      for jar in ctxt.files._appengine_deps
+  ]
+
   substitutions = {
       "%{workspace_name}" : ctxt.workspace_name,
       "%{zipper}": ctxt.file._zipper.short_path,
@@ -166,7 +170,9 @@ def _war_impl(ctxt):
       "%{java}": ctxt.file._java.short_path,
       "%{appengine_sdk}": appengine_sdk,
       "%{classpath}":  (":".join(classpath)),
+      "%{data_path}": data_path
   }
+
   ctxt.template_action(
       output = executable,
       template = ctxt.file._runner_template,
@@ -179,8 +185,9 @@ def _war_impl(ctxt):
       executable = True)
 
   runfiles = ctxt.runfiles(files = [war, executable]
+                           + list(transitive_deps)
+                           + inputs
                            + ctxt.files._appengine_sdk
-                           + ctxt.files._appengine_jars
                            + [ctxt.file._java, ctxt.file._zipper])
   return struct(runfiles = runfiles)
 
@@ -205,9 +212,6 @@ appengine_war = rule(
         ),
         "_appengine_sdk": attr.label(
             default = Label("@com_google_appengine_java//:sdk"),
-        ),
-        "_appengine_jars": attr.label(
-            default = Label("@com_google_appengine_java//:jars"),
         ),
         "_appengine_deps": attr.label_list(
             default = [Label("@com_google_appengine_java//:api")],
@@ -241,24 +245,27 @@ APPENGINE_BUILD_FILE = """
 # BUILD file to use the Java AppEngine SDK with a remote repository.
 java_import(
     name = "jars",
-    jars = glob(["%s/lib/**/*.jar"]),
+    jars = glob(["{appengine}/lib/**/*.jar"]),
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "api",
-    jars = ["%s/lib/impl/appengine-api.jar"],
+    jars = [
+        "{appengine}/lib/appengine-tools-api.jar",
+        "{appengine}/lib/agent/appengine-agent.jar",
+    ],
     visibility = ["//visibility:public"],
     neverlink = 1,
 )
 
 filegroup(
     name = "sdk",
-    srcs = glob(["%s/**"]),
+    srcs = glob(["{appengine}/**"]),
     visibility = ["//visibility:public"],
-    path = "%s",
+    path = "{appengine}",
 )
-""" % (APPENGINE_DIR, APPENGINE_DIR, APPENGINE_DIR, APPENGINE_DIR)
+""".format(appengine=APPENGINE_DIR)
 
 def _find_locally_or_download_impl(repository_ctx):
   if 'APPENGINE_SDK_PATH' in repository_ctx.os.environ:
