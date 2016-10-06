@@ -24,13 +24,6 @@ if [[ -z "$JAVA_RUNFILES" ]]; then
   fi
 fi
 
-root_path=$(pwd)
-tmp_dir=$(mktemp -d ${TMPDIR:-/tmp}/war.XXXXXXXX)
-trap "{ cd ${root_path}; rm -rf ${tmp_dir}; }" EXIT
-cd ${tmp_dir}
-
-${JAVA_RUNFILES}/%{zipper} x ${JAVA_RUNFILES}/%{war}
-
 jvm_bin=${JAVA_RUNFILES}/%{java}
 if [[ ! -x ${jvm_bin} ]]; then
   jvm_bin=$(which java)
@@ -40,13 +33,20 @@ APP_ENGINE_ROOT=${JAVA_RUNFILES}/%{appengine_sdk}
 main_class="com.google.appengine.tools.development.DevAppServerMain"
 classpath="%{classpath}"
 
+# If we are not on the data path, we'll get a warning:
+# WARNING: Your working directory, ($PWD) is not equal to your
+# web application root (%{data_path})
+# You will not be able to access files from your working directory on the
+# production server.
+cd "%{data_path}"
+
+mkdir -p WEB-INF/lib
+for i in $(echo $classpath | tr ":" "\n")
+do
+    jar="WEB-INF/lib/$(basename $i)"
+    rm -f "$jar"
+    ln -s "$i" "$jar"
+done
+
 ${jvm_bin} -Dappengine.sdk.root=${APP_ENGINE_ROOT} -cp "${classpath}" \
-    ${main_class} "$@" ${tmp_dir}
-retCode=$?
-
-# We remove the trap so the return code doesn't get intercepted by it on OS X.
-cd ${root_path}
-rm -rf ${tmp_dir}
-trap - EXIT
-
-exit $retCode
+    ${main_class} "." "$@"
