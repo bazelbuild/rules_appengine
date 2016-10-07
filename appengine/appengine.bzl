@@ -155,7 +155,8 @@ def _war_impl(ctxt):
     elif not f.path.startswith(appengine_sdk):
       appengine_sdk = _common_substring(appengine_sdk, f.short_path)
   if not appengine_sdk:
-    fail("Could not find appengine files")
+    fail("could not find appengine files",
+         attr = str(ctxt.attr._appengine_sdk.label))
 
   classpath = ["${JAVA_RUNFILES}/%s" % jar.short_path for jar in transitive_deps]
   classpath += [
