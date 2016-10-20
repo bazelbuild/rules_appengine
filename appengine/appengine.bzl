@@ -238,7 +238,7 @@ def java_war(name, data=[], data_path=None, **kwargs):
                 data=data,
                 data_path=data_path)
 
-APPENGINE_VERSION = "1.9.42"
+APPENGINE_VERSION = "1.9.44"
 
 APPENGINE_DIR = "appengine-java-sdk-" + APPENGINE_VERSION
 
@@ -281,7 +281,7 @@ def _find_locally_or_download_impl(repository_ctx):
     repository_ctx.file("dummy")
     repository_ctx.download_and_extract(
      "http://central.maven.org/maven2/com/google/appengine/appengine-java-sdk/%s/%s.zip" % (APPENGINE_VERSION, APPENGINE_DIR),
-     ".", "3003892e89fb32a51dc3e2d91658fc7ba8b31f8b0b3fc22ccbd856ed94a03424",
+     ".", "70fd66b394348fbb6d6e1863447b3629364e049aca8dd4c1af507051b9411b44",
      "", "")
   repository_ctx.file("BUILD", APPENGINE_BUILD_FILE)
 
