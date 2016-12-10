@@ -30,6 +30,8 @@ appengine_war(
   data_path = "/java/com/google/examples/mywebapp",
 )
 
+To test locally:
+bazel run :MyWebApp
 
 You can also make directly a single target for it with:
 
@@ -58,10 +60,20 @@ appengine_war(
   data_path = "...",
 )
 
-This rule will also create a .deploy target that will try to use the AppEngine
-SDK to upload your application to AppEngine. It takes an optional argument: the
+Finally, the appengine macro also create a .deploy target that will try to use the
+AppEngine SDK to upload your application to AppEngine. It takes an optional argument: the
 APP_ID. If not specified, it uses the default APP_ID provided in the application
 web.xml.
+
+appengine(
+  name = "MyWebApp",
+  jars = [":libMyWebApp"],
+  data = ["..."],
+  data_path = "...",
+)
+
+To deploy on Google app engine:
+bazel run :MyWebApp.deploy
 """
 
 jar_filetype = FileType([".jar"])
@@ -98,6 +110,10 @@ def _short_path_dirname(path):
   return sp[0:len(sp)-len(path.basename)-1]
 
 def _war_impl(ctxt):
+  """Implentation of the rule that creates
+     - the war
+     - the script to deploy
+  """
   zipper = ctxt.file._zipper
 
   data_path = ctxt.attr.data_path
@@ -166,7 +182,7 @@ def _war_impl(ctxt):
 
   substitutions = {
       "%{workspace_name}" : ctxt.workspace_name,
-      "%{zipper}": ctxt.file._zipper.short_path,
+      "%{zipper}": ctxt.file._zipper.path,
       "%{war}": ctxt.outputs.war.short_path,
       "%{java}": ctxt.file._java.short_path,
       "%{appengine_sdk}": appengine_sdk,
@@ -180,10 +196,9 @@ def _war_impl(ctxt):
       substitutions = substitutions,
       executable = True)
   ctxt.template_action(
-      output = ctxt.outputs.deploy,
+      output = ctxt.outputs.deploy_sh,
       template = ctxt.file._deploy_template,
-      substitutions = substitutions,
-      executable = True)
+      substitutions = substitutions)
 
   runfiles = ctxt.runfiles(files = [war, executable]
                            + list(transitive_deps)
@@ -227,17 +242,40 @@ appengine_war = rule(
     executable = True,
     outputs = {
         "war": "%{name}.war",
-        "deploy": "%{name}.deploy",
+        "deploy_sh": "%{name}_deploy.sh",
     },
 )
 
 def java_war(name, data=[], data_path=None, **kwargs):
+  """Convenience macro to call appengine_war with Java sources rather than jar.
+  """
   native.java_library(name = "lib%s" % name, **kwargs)
   appengine_war(name = name,
                 jars = ["lib%s" % name],
                 data=data,
                 data_path=data_path)
 
+def java_appengine(name, data=[], data_path=None, **kwargs):
+  native.java_library(name = "lib%s" % name, **kwargs)
+  appengine(name = name,
+            jars = ["lib%s" % name],
+            data=data,
+            data_path=data_path)
+
+def appengine(name, jars, data, data_path):
+  """Convenience macro that builds the war and offers an executable
+     target to deploy on Google app engine.
+  """
+  appengine_war(name = name,
+                jars = jars,
+                data = data,
+                data_path = data_path)
+  # Create the executable rule to deploy
+  native.sh_binary(name = "%s.deploy" % name,
+                   srcs = ["%s_deploy.sh" % name],
+                   data = [name])
+
+                    
 APPENGINE_VERSION = "1.9.48"
 
 APPENGINE_DIR = "appengine-java-sdk-" + APPENGINE_VERSION

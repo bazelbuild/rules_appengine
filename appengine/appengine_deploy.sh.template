@@ -19,10 +19,8 @@ case "$0" in
 esac
 
 if [[ -z "$JAVA_RUNFILES" ]]; then
-  if [[ -e "${self%.deploy}.runfiles" ]]; then
-    JAVA_RUNFILES="${self%.deploy}.runfiles"
-  else
-    JAVA_RUNFILES=$PWD
+  if [[ -e "${self}.runfiles/%{workspace_name}" ]]; then
+    JAVA_RUNFILES="${self}.runfiles/%{workspace_name}"
   fi
 fi
 
@@ -30,10 +28,11 @@ root_path=$(pwd)
 tmp_dir=$(mktemp -d ${TMPDIR:-/tmp}/war.XXXXXXXX)
 trap "{ cd ${root_path}; rm -rf ${tmp_dir}; }" EXIT
 cd ${tmp_dir}
-${JAVA_RUNFILES}/%{workspace_name}/%{zipper} x ${JAVA_RUNFILES}/%{workspace_name}/%{war}
+
+${JAVA_RUNFILES}/%{zipper} x ${JAVA_RUNFILES}/%{war}
 cd ${root_dir}
 
-APP_ENGINE_ROOT=${JAVA_RUNFILES}/%{workspace_name}/%{appengine_sdk}
+APP_ENGINE_ROOT=${JAVA_RUNFILES}/%{appengine_sdk}
 if [ -n "${1-}" ]; then
   ${APP_ENGINE_ROOT}/bin/appcfg.sh -A "$1" update ${tmp_dir}
   retCode=$?
