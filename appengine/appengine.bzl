@@ -110,7 +110,7 @@ def _short_path_dirname(path):
   return sp[0:len(sp)-len(path.basename)-1]
 
 def _war_impl(ctxt):
-  """Implentation of the rule that creates
+  """Implementation of the rule that creates
      - the war
      - the script to deploy
   """

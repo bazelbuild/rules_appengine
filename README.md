@@ -3,8 +3,8 @@
 <div class="toc">
   <h2>Rules</h2>
   <ul>
-    <li><a href="#appengine_war">appengine_war</a></li>
-    <li><a href="#java_war">java_war</a></li>
+    <li><a href="#appengine">appengine</a></li>
+    <li><a href="#java_appengine">java_appengine</a></li>
   </ul>
 </div>
 
@@ -53,10 +53,12 @@ application:
             appengine-web.xml
 ```
 
+### BUILD definition
+
 Then, to build your webapp, your `hello_app/BUILD` can look like:
 
 ```python
-load("@io_bazel_rules_appengine//appengine:appengine.bzl", "appengine_war")
+load("@io_bazel_rules_appengine//appengine:appengine.bzl", "appengine")
 
 java_library(
     name = "mylib",
@@ -67,7 +69,7 @@ java_library(
     ],
 )
 
-appengine_war(
+appengine(
     name = "myapp",
     jars = [":mylib"],
     data = glob(["webapp/**"]),
@@ -75,11 +77,12 @@ appengine_war(
 )
 ```
 
-For simplicity, you can use the `java_war` rule to build an app from source.
+For simplicity, you can alternatively use the `java_appengine` rule to build an app
+from source.
 Your `hello_app/BUILD` file would then look like:
 
 ```python
-load("@io_bazel_rules_appengine//appengine:appengine.bzl", "java_war")
+load("@io_bazel_rules_appengine//appengine:appengine.bzl", "java_appengine")
 
 java_war(
     name = "myapp",
@@ -93,16 +96,23 @@ java_war(
 )
 ```
 
-You can then build the application with `bazel build //hello_app:myapp` and
-run in it a development server with `bazel run //hello_app:myapp`. This will
-bind a test server on port 8080. If you wish to select another port,
+You can then build the application with `bazel build //hello_app:myapp`.
+
+### Run on a local server
+
+You can run it in a development server with `bazel run //hello_app:myapp`.
+This will bind a test server on port 8080. If you wish to select another port,
 simply append the `--port=12345` to the command-line.
 
+### Deploy on Google app engine
+
 Another target `//hello_app:myapp.deploy` allows you to deploy your
-application to App Engine. It takes an optional argument: the
-`APP_ID`. If not specified, it uses the default `APP_ID` provided in
-the application. This target needs to be authorized to App Engine. Since
-Bazel does not connect the standard input, it is easier to run it by:
+application to App Engine.
+
+It takes an optional argument: the `APP_ID`. If not specified, it uses the
+default `APP_ID` provided in the application. This target needs to be
+authorized to App Engine. Since Bazel does not connect the standard input,
+it is easier to run it by:
 ```
 bazel-bin/hello_app/myapp.deploy APP_ID
 ```
@@ -112,11 +122,11 @@ App Engine so you can just do a normal `bazel run
 //hello_app:myapp.deploy APP_ID` to deploy next versions of
 your application.
 
-<a name="appengine_war"></a>
-## appengine_war
+<a name="appengine"></a>
+## appengine
 
 ```python
-appengine_war(name, jars, data, data_path)
+appengine(name, jars, data, data_path)
 ```
 
 <table class="table table-condensed table-bordered table-params">
@@ -180,11 +190,11 @@ appengine_war(name, jars, data, data_path)
   </tbody>
 </table>
 
-<a name="java_war"></a>
-## java_war
+<a name="java_appengine"></a>
+## java_appengine
 
-```
-java_war(name, data, data_path, **kwargs)
+```pyhton
+java_appengine(name, data, data_path, **kwargs)
 ```
 
 <table class="table table-condensed table-bordered table-params">
@@ -235,7 +245,7 @@ java_war(name, data, data_path, **kwargs)
   </tbody>
 </table>
 
-# Using a local AppEngine SDK
+## Using a local AppEngine SDK
 
 You can, optionally, specify the environment variable APPENGINE_SDK_PATH to use
 an SDK that is on your filesystem (instead of downloading a new one).
