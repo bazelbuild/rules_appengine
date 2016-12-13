@@ -33,6 +33,9 @@ appengine_war(
 To test locally:
 bazel run :MyWebApp
 
+To deploy on Google app engine:
+bazel run :MyWebApp.deploy
+
 You can also make directly a single target for it with:
 
 java_war(
@@ -64,16 +67,6 @@ Finally, the appengine macro also create a .deploy target that will try to use t
 AppEngine SDK to upload your application to AppEngine. It takes an optional argument: the
 APP_ID. If not specified, it uses the default APP_ID provided in the application
 web.xml.
-
-appengine(
-  name = "MyWebApp",
-  jars = [":libMyWebApp"],
-  data = ["..."],
-  data_path = "...",
-)
-
-To deploy on Google app engine:
-bazel run :MyWebApp.deploy
 """
 
 jar_filetype = FileType([".jar"])
@@ -182,7 +175,7 @@ def _war_impl(ctxt):
 
   substitutions = {
       "%{workspace_name}" : ctxt.workspace_name,
-      "%{zipper}": ctxt.file._zipper.path,
+      "%{zipper}": ctxt.file._zipper.short_path,
       "%{war}": ctxt.outputs.war.short_path,
       "%{java}": ctxt.file._java.short_path,
       "%{appengine_sdk}": appengine_sdk,
@@ -207,7 +200,7 @@ def _war_impl(ctxt):
                            + [ctxt.file._java, ctxt.file._zipper])
   return struct(runfiles = runfiles)
 
-appengine_war = rule(
+appengine_war_base = rule(
     _war_impl,
     attrs = {
         "_java": attr.label(
@@ -255,18 +248,11 @@ def java_war(name, data=[], data_path=None, **kwargs):
                 data=data,
                 data_path=data_path)
 
-def java_appengine(name, data=[], data_path=None, **kwargs):
-  native.java_library(name = "lib%s" % name, **kwargs)
-  appengine(name = name,
-            jars = ["lib%s" % name],
-            data=data,
-            data_path=data_path)
-
-def appengine(name, jars, data, data_path):
+def appengine_war(name, jars, data, data_path):
   """Convenience macro that builds the war and offers an executable
      target to deploy on Google app engine.
   """
-  appengine_war(name = name,
+  appengine_war_base(name = name,
                 jars = jars,
                 data = data,
                 data_path = data_path)

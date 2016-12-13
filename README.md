@@ -3,8 +3,8 @@
 <div class="toc">
   <h2>Rules</h2>
   <ul>
-    <li><a href="#appengine">appengine</a></li>
-    <li><a href="#java_appengine">java_appengine</a></li>
+    <li><a href="#appengine_war">appengine_war</a></li>
+    <li><a href="#java_war">java_war</a></li>
   </ul>
 </div>
 
@@ -58,7 +58,7 @@ application:
 Then, to build your webapp, your `hello_app/BUILD` can look like:
 
 ```python
-load("@io_bazel_rules_appengine//appengine:appengine.bzl", "appengine")
+load("@io_bazel_rules_appengine//appengine:appengine.bzl", "appengine_war")
 
 java_library(
     name = "mylib",
@@ -69,7 +69,7 @@ java_library(
     ],
 )
 
-appengine(
+appengine_war(
     name = "myapp",
     jars = [":mylib"],
     data = glob(["webapp/**"]),
@@ -77,12 +77,11 @@ appengine(
 )
 ```
 
-For simplicity, you can alternatively use the `java_appengine` rule to build an app
-from source.
+For simplicity, you can use the `java_war` rule to build an app from source.
 Your `hello_app/BUILD` file would then look like:
 
 ```python
-load("@io_bazel_rules_appengine//appengine:appengine.bzl", "java_appengine")
+load("@io_bazel_rules_appengine//appengine:appengine.bzl", "java_war")
 
 java_war(
     name = "myapp",
@@ -122,11 +121,11 @@ App Engine so you can just do a normal `bazel run
 //hello_app:myapp.deploy APP_ID` to deploy next versions of
 your application.
 
-<a name="appengine"></a>
-## appengine
+<a name="appengine_war"></a>
+## appengine_war
 
 ```python
-appengine(name, jars, data, data_path)
+appengine_war(name, jars, data, data_path)
 ```
 
 <table class="table table-condensed table-bordered table-params">
@@ -190,11 +189,11 @@ appengine(name, jars, data, data_path)
   </tbody>
 </table>
 
-<a name="java_appengine"></a>
-## java_appengine
+<a name="java_war"></a>
+## java_war
 
-```pyhton
-java_appengine(name, data, data_path, **kwargs)
+```python
+java_war(name, data, data_path, **kwargs)
 ```
 
 <table class="table table-condensed table-bordered table-params">
