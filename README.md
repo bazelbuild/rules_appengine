@@ -101,16 +101,40 @@ simply append the `--port=12345` to the command-line.
 Another target `//hello_app:myapp.deploy` allows you to deploy your
 application to App Engine. It takes an optional argument: the
 `APP_ID`. If not specified, it uses the default `APP_ID` provided in
-the application. This target needs to be authorized to App Engine. Since
-Bazel does not connect the standard input, it is easier to run it by:
+the application. This target needs to open a browser to authenticate
+with AppEngine, then have you copy-paste a "key" from the browser in
+the terminal. Since Bazel closes standard input, you can only input
+this by building the target and then running:
+
 ```
-bazel-bin/hello_app/myapp.deploy APP_ID
+$ bazel-bin/hello_app/myapp.deploy APP_ID
 ```
 
 After the first launch, subsequent launch will be registered to
 App Engine so you can just do a normal `bazel run
-//hello_app:myapp.deploy APP_ID` to deploy next versions of
+//hello_app:myapp.deploy -- APP_ID` to deploy next versions of
 your application.
+
+*Note:* AppEngine uses Java 7. If you are using a more recent version of Java,
+you will get the following error message:
+
+```
+java.lang.IllegalArgumentException: Class file is Java 8 but max supported is Java 7
+```
+
+To build with Java 7, use the toolchain bundled with these AppEngine rules:
+
+```
+$ bazel build --java_toolchain=@io_bazel_rules_appengine//:jdk7 //my-project
+```
+
+To avoid having to specify this toolchain during every build, you can add this
+to your project's `.bazelrc`.  Create a `.bazelrc` file in the root directory of
+your project and add the line:
+
+```
+common --java_toolchain=@io_bazel_rules_appengine//appengine:jdk7
+```
 
 <a name="appengine_war"></a>
 ## appengine_war
