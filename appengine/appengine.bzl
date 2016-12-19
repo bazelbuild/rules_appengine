@@ -248,20 +248,26 @@ def java_war(name, data=[], data_path=None, **kwargs):
                 data=data,
                 data_path=data_path)
 
-def appengine_war(name, jars, data, data_path):
+def appengine_war(name, jars, data, data_path, testonly = 0):
   """Convenience macro that builds the war and offers an executable
      target to deploy on Google app engine.
   """
-  appengine_war_base(name = name,
-                jars = jars,
-                data = data,
-                data_path = data_path)
+  appengine_war_base(
+      name = name,
+      jars = jars,
+      data = data,
+      data_path = data_path,
+      testonly = testonly,
+  )
   # Create the executable rule to deploy
-  native.sh_binary(name = "%s.deploy" % name,
-                   srcs = ["%s_deploy.sh" % name],
-                   data = [name])
+  native.sh_binary(
+      name = "%s.deploy" % name,
+      srcs = ["%s_deploy.sh" % name],
+      data = [name],
+      testonly = testonly,
+  )
 
-                    
+
 APPENGINE_VERSION = "1.9.48"
 
 APPENGINE_DIR = "appengine-java-sdk-" + APPENGINE_VERSION
