@@ -116,7 +116,7 @@ App Engine so you can just do a normal `bazel run
 your application.
 
 *Note:* AppEngine uses Java 7. If you are using a more recent version of Java,
-you will get the following error message:
+you will get the following error message when you try to deploy:
 
 ```
 java.lang.IllegalArgumentException: Class file is Java 8 but max supported is Java 7
@@ -125,7 +125,7 @@ java.lang.IllegalArgumentException: Class file is Java 8 but max supported is Ja
 To build with Java 7, use the toolchain bundled with these AppEngine rules:
 
 ```
-$ bazel build --java_toolchain=@io_bazel_rules_appengine//:jdk7 //my-project
+$ bazel build --java_toolchain=@io_bazel_rules_appengine//appengine:jdk7 //my-project
 ```
 
 To avoid having to specify this toolchain during every build, you can add this
@@ -133,7 +133,7 @@ to your project's `.bazelrc`.  Create a `.bazelrc` file in the root directory of
 your project and add the line:
 
 ```
-common --java_toolchain=@io_bazel_rules_appengine//appengine:jdk7
+build --java_toolchain=@io_bazel_rules_appengine//appengine:jdk7
 ```
 
 <a name="appengine_war"></a>
