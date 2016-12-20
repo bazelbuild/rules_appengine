@@ -33,6 +33,15 @@ load("@io_bazel_rules_appengine//appengine:appengine.bzl", "appengine_repositori
 appengine_repositories()
 ```
 
+The AppEngine rules download the AppEngine SDK, which is a few hundred megabytes
+in size. To avoid downloading this multiple times for multiple projects or
+inadvertently re-downloading it, you might want to add the following line to
+your `$HOME/.bazelrc` file:
+
+```
+build --experimental_repository_cache=/home/user/.bazel/cache
+```
+
 <a name="basic-example"></a>
 ## Basic Example
 
@@ -101,7 +110,14 @@ You can then build the application with `bazel build //hello_app:myapp`.
 
 You can run it in a development server with `bazel run //hello_app:myapp`.
 This will bind a test server on port 8080. If you wish to select another port,
-simply append the `--port=12345` to the command-line.
+use the `--port` option:
+
+```
+bazel run //hello_app:myapp -- --port=12345
+```
+
+You can see other options with `-- --help` (the `--` tells Bazel to pass the
+rest of the arguments to the executable).
 
 ### Deploy on Google app engine
 
