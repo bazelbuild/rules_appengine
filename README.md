@@ -119,7 +119,7 @@ bazel run //hello_app:myapp -- --port=12345
 You can see other options with `-- --help` (the `--` tells Bazel to pass the
 rest of the arguments to the executable).
 
-### Deploy on Google app engine
+### Deploy to Google App Engine
 
 Another target `//hello_app:myapp.deploy` allows you to deploy your
 application to App Engine. It takes an optional argument: the
