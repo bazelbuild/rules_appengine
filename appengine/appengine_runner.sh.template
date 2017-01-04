@@ -78,8 +78,8 @@ ARGS=(
   "${JVM_FLAGS_CMDLINE[@]}"
   "-Dappengine.sdk.root=${APP_ENGINE_ROOT}"
   ${main_class}
-  .
   "${ARGS[@]}"
+  .
 )
 
 # Linux per-arg limit MAX_ARG_STRLEN == 128k!
