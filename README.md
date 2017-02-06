@@ -1,18 +1,21 @@
-# Java App Engine Rules for Bazel
+# App Engine Rules for Bazel
 
 <div class="toc">
   <h2>Rules</h2>
   <ul>
     <li><a href="#appengine_war">appengine_war</a></li>
     <li><a href="#java_war">java_war</a></li>
+    <li><a href="#py_appengine_binary">py_appengine_binary</a></li>
+    <li><a href="#py_appengine_test">py_appengine_test</a></li>
   </ul>
 </div>
 
 ## Overview
 
 These build rules are used for building
-[Java App Engine](https://cloud.google.com/appengine/docs/java/)
-application with Bazel. It does not aim at general Java web application
+[Java App Engine](https://cloud.google.com/appengine/docs/java/) application or
+[Python App Engine](https://cloud.google.com/appengine/docs/python/) application
+with Bazel. It does not aim at general web application
 support but can be easily modified to handle a standard web application.
 
 <a name="setup"></a>
@@ -29,8 +32,12 @@ git_repository(
     # Check https://github.com/bazelbuild/rules_appengine/releases for the latest version.
     tag = "0.0.4",
 )
+#Java
 load("@io_bazel_rules_appengine//appengine:appengine.bzl", "appengine_repositories")
 appengine_repositories()
+#Python
+load("@io_bazel_rules_appengine//appengine:py_appengine.bzl", "py_appengine_repositories")
+py_appengine_repositories()
 ```
 
 The AppEngine rules download the AppEngine SDK, which is a few hundred megabytes
@@ -282,11 +289,128 @@ java_war(name, data, data_path, **kwargs)
   </tbody>
 </table>
 
+<a name="py_appengine_binary"></a>
+## py_appengine_binary
+```python
+py_appengine_binary(name, srcs, configs, deps=[], data=[])
+```
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <code>Name, required</code>
+        <p>A unique name for this rule.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>configs</code></td>
+      <td>
+        <code>List of labels, required</code>
+        <p>the path to your app.yaml/index.yaml/cron.yaml files</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>srcs</code></td>
+      <td>
+        <code>List of labels, optional</code>
+        <p>The list of source files that are processed to create the target. </p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <code>List of labels, optional</code>
+        <p>The list of libraries to link into this library. </p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>data</code></td>
+      <td>
+        <code>List of labels, optional</code>
+        <p>List of files used by the Web Application at runtime.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<a name="py_appengine_test"></a>
+## py_appengine_test
+```python
+py_appengine_test(name, srcs, deps=[], data=[], libraries={})
+```
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <code>Name, required</code>
+        <p>A unique name for this rule.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>srcs</code></td>
+      <td>
+        <code>List of labels, required</code>
+        <p>The list of source files that are processed to create the target. </p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <code>List of labels, optional</code>
+        <p>The list of libraries to link into this library. </p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>data</code></td>
+      <td>
+        <code>List of labels, optional</code>
+        <p>List of files used by the Web Application at runtime.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>libraries</code></td>
+      <td>
+        <code>dirct, optional</code>
+        <p>dictionary of name and the corresponding version for third-party libraries required from sdk.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## Using a local AppEngine SDK
 
+###Java
 You can, optionally, specify the environment variable APPENGINE_SDK_PATH to use
 an SDK that is on your filesystem (instead of downloading a new one).
 
 ```
 APPENGINE_SDK_PATH=/path/to/appengine-java-sdk-1.9.38 bazel build //whatever
+```
+
+###Python
+You can, optionally, specify the environment variable PY_APPENGINE_SDK_PATH to use
+an SDK that is on your filesystem (instead of downloading a new one).
+
+```
+PY_APPENGINE_SDK_PATH=/path/to/appengine-python-sdk-1.9.50 bazel build //whatever
 ```
