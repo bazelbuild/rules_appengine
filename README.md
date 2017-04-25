@@ -390,7 +390,7 @@ py_appengine_test(name, srcs, deps=[], data=[], libraries={})
     <tr>
       <td><code>libraries</code></td>
       <td>
-        <code>dirct, optional</code>
+        <code>dict, optional</code>
         <p>dictionary of name and the corresponding version for third-party libraries required from sdk.</p>
       </td>
     </tr>
@@ -404,7 +404,7 @@ You can, optionally, specify the environment variable APPENGINE_SDK_PATH to use
 an SDK that is on your filesystem (instead of downloading a new one).
 
 ```
-APPENGINE_SDK_PATH=/path/to/appengine-java-sdk-1.9.38 bazel build //whatever
+APPENGINE_SDK_PATH=/path/to/appengine-java-sdk-1.9.50 bazel build //whatever
 ```
 
 ###Python
