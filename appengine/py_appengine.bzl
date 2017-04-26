@@ -92,12 +92,12 @@ def _py_appengine_binary_base_impl(ctx):
     files = c.files.to_list()
     for f in files:
       symlinks[f.basename] = f
+
   runfiles = ctx.runfiles(
-      transitive_files=ctx.attr.binary.data_runfiles.files
-      + ctx.attr.devappserver.data_runfiles.files
-      + ctx.attr.appcfg.data_runfiles.files,
+      transitive_files=ctx.attr.devappserver.data_runfiles.files,
       symlinks=symlinks,
-  )
+  ).merge(ctx.attr.binary.data_runfiles).merge(ctx.attr.appcfg.data_runfiles)
+
   ctx.file_action(
       output=ctx.outputs.executable,
       content="""
@@ -155,10 +155,14 @@ def py_appengine_binary(name, srcs, configs, deps=[], data=[]):
   """Convenience macro that builds the app and offers an executable
      target to deploy on Google app engine.
   """
-  native.py_library(
+  if not srcs:
+    fail("srcs should not be empty.")
+  # uses py_binary because it generates __init__.py files
+  native.py_binary(
       name="_py_appengine_" + name,
       srcs = srcs,
       deps=deps,
+      main=srcs[0],  # no entry point, use arbitrary source file
   )
   py_appengine_binary_base(
       name=name,
