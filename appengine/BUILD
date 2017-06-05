@@ -39,7 +39,7 @@ java_toolchain(
         "-XX:+TieredCompilation",
         "-XX:TieredStopAtLevel=1",
     ],
-    singlejar = ["@bazel_tools//tools/jdk:SingleJar_deploy.jar"],
+    singlejar = ["@bazel_tools//tools/jdk:singlejar"],
     source_version = "7",
     target_version = "7",
     visibility = ["//visibility:public"],
