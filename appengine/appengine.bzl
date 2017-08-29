@@ -127,7 +127,7 @@ def _war_impl(ctxt):
   inputs = [zipper]
   cmd += ["mkdir -p %s/WEB-INF/lib" % build_output]
 
-  transitive_deps = set()
+  transitive_deps = depset()
   for jar in ctxt.attr.jars:
     if hasattr(jar, "java"):  # java_library, java_import
       transitive_deps += jar.java.transitive_runtime_deps
