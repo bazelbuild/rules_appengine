@@ -121,9 +121,18 @@ sys.path.extend([d for d in repo_dirs if os.path.isdir(d)])
       output=ctx.outputs.executable,
       content="""
 #!/bin/bash
-ROOT=$PWD
-$ROOT/{0} app.yaml
-""".format(ctx.attr.devappserver.files_to_run.executable.short_path),
+
+case "$0" in
+/*) self="$0" ;;
+*)  self="$PWD/$0";;
+esac
+if [[ -e "$self.runfiles/{1}" ]]; then
+  RUNFILES="$self.runfiles/{1}"
+  cd $RUNFILES
+fi
+
+{0} app.yaml
+""".format(ctx.attr.devappserver.files_to_run.executable.short_path, ctx.workspace_name),
       is_executable=True,
   )
 
@@ -131,6 +140,16 @@ $ROOT/{0} app.yaml
       output=ctx.outputs.deploy_sh,
       content="""
 #!/bin/bash
+
+case "$0" in
+/*) self="$0" ;;
+*)  self="$PWD/$0";;
+esac
+if [[ -e "$self.runfiles/{1}" ]]; then
+  RUNFILES="$self.runfiles/{1}"
+  cd $RUNFILES
+fi
+
 ROOT=$PWD
 tmp_dir=$(mktemp -d ${{TMPDIR:-/tmp}}/war.XXXXXXXX)
 cp -R $ROOT $tmp_dir
