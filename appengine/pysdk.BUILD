@@ -40,6 +40,12 @@ py_library(
 )
 
 py_library(
+    name = "fancy_urllib",
+    srcs = glob(["lib/fancy_urllib/**/*.py"]),
+    imports = ["lib/fancy_urllib"],
+)
+
+py_library(
     name = "jinja2-2.6",
     srcs = glob(["lib/jinja2-2.6/jinja2/**/*.py"]),
     imports = ["lib/jinja2-2.6"],
@@ -110,6 +116,11 @@ py_library(
 py_library(
     name = "endpoints-latest",
     deps = [":endpoints-1.0"],
+)
+
+py_library(
+    name = "fancy_urllib-latest",
+    deps = [":fancy_urllib"],
 )
 
 py_library(
