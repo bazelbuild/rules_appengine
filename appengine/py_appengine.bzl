@@ -52,9 +52,9 @@ def _find_locally_or_download_impl(repository_ctx):
     repository_ctx.symlink(path, ".")
   else:
     repository_ctx.download_and_extract(
-        url="https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.50.zip",
+        url="https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.59.zip",
         output=".",
-        sha256="06e08edbfb64c52157582625010078deedcf08130f84a2c9a81193bbebdf6afa",
+        sha256="a40a107a71d86d92366c1edbd03dc660cb09cf799b8d57b70314279efd55bea1",
         stripPrefix="google_appengine")
   repository_ctx.template("BUILD", Label("//appengine:pysdk.BUILD"))
 
