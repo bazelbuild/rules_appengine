@@ -87,7 +87,26 @@ def _py_appengine_binary_base_impl(ctx):
      - the script to run locally
      - the script to deploy
   """
-  symlinks = dict()
+
+  #TODO(maximermilov): add supports for custom imports
+  config = ctx.actions.declare_file("appengine_config.py")
+  ctx.actions.write(
+      output=config,
+      content="""
+import os
+import sys
+
+module_space = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'external')
+
+repo_dirs = [os.path.join(module_space, d) for d in os.listdir(module_space)]
+sys.path.extend([d for d in repo_dirs if os.path.isdir(d)])
+""",
+  )
+
+  symlinks = {
+      "appengine_config.py": config,
+  }
+
   for c in ctx.attr.configs:
     files = c.files.to_list()
     for f in files:
@@ -98,17 +117,17 @@ def _py_appengine_binary_base_impl(ctx):
       symlinks=symlinks,
   ).merge(ctx.attr.binary.data_runfiles).merge(ctx.attr.appcfg.data_runfiles)
 
-  ctx.file_action(
+  ctx.actions.write(
       output=ctx.outputs.executable,
       content="""
 #!/bin/bash
 ROOT=$PWD
 $ROOT/{0} app.yaml
 """.format(ctx.attr.devappserver.files_to_run.executable.short_path),
-      executable=True,
+      is_executable=True,
   )
 
-  ctx.file_action(
+  ctx.actions.write(
       output=ctx.outputs.deploy_sh,
       content="""
 #!/bin/bash
@@ -130,7 +149,7 @@ trap - EXIT
 
 exit $retCode
 """.format(ctx.attr.appcfg.files_to_run.executable.short_path, ctx.workspace_name),
-      executable=True,
+      is_executable=True,
   )
 
   return struct(runfiles=runfiles, py=ctx.attr.binary.py)
