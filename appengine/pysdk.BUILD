@@ -18,6 +18,7 @@ package(default_visibility = ["//visibility:public"])
 py_library(
     name = "appengine",
     srcs = glob(["**/*.py"]),
+    data = glob(["**/*"], exclude=["**/*.py"]),
 )
 
 py_binary(
