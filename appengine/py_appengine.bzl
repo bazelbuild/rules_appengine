@@ -131,7 +131,7 @@ if [[ -e "$self.runfiles/{1}" ]]; then
   cd $RUNFILES
 fi
 
-{0} app.yaml
+{0} --skip_sdk_update_check 1 app.yaml
 """.format(ctx.attr.devappserver.files_to_run.executable.short_path, ctx.workspace_name),
       is_executable=True,
   )
