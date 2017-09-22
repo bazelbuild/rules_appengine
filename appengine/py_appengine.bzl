@@ -69,7 +69,7 @@ def py_appengine_repositories():
   _find_locally_or_download(name = "com_google_appengine_python")
 
 
-def py_appengine_test(name, srcs, deps=[], data=[], libraries={}):
+def py_appengine_test(name, srcs, deps=[], data=[], libraries={}, size=None):
   """A variant of py_test that sets up an App Engine environment."""
   extra_deps = ["@com_google_appengine_python//:appengine"]
   for l in libraries:
@@ -79,6 +79,7 @@ def py_appengine_test(name, srcs, deps=[], data=[], libraries={}):
       deps=deps + extra_deps,
       srcs=srcs,
       data=data,
+      size=size,
   )
 
 
