@@ -213,3 +213,8 @@ def py_appengine_binary(name, srcs, configs, deps=[], data=[]):
       srcs = ["%s_deploy.sh" % name],
       data = [name],
   )
+
+def py_appengine_library(**kwargs):
+  """Wrapper for py_library
+  """
+  native.py_library(**kwargs)
