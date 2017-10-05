@@ -199,8 +199,9 @@ def py_appengine_binary(name, srcs, configs, deps=[], data=[]):
   # uses py_binary because it generates __init__.py files
   native.py_binary(
       name="_py_appengine_" + name,
-      srcs = srcs,
+      srcs=srcs,
       deps=deps,
+      data=data,
       main=srcs[0],  # no entry point, use arbitrary source file
   )
   py_appengine_binary_base(
@@ -209,9 +210,9 @@ def py_appengine_binary(name, srcs, configs, deps=[], data=[]):
       configs=configs,
   )
   native.sh_binary(
-      name = "%s.deploy" % name,
-      srcs = ["%s_deploy.sh" % name],
-      data = [name],
+      name="%s.deploy" % name,
+      srcs=["%s_deploy.sh" % name],
+      data=[name],
   )
 
 def py_appengine_library(**kwargs):
