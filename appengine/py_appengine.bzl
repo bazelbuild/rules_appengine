@@ -19,8 +19,8 @@ py_appengine_binary(
   # data to put in the webapp, the directory structure of the data set
   # will be maintained.
   data = ["//mywebapp:data"],
-  configs = ["//mywebapp:app.yaml"],
-  srcs= ["main.py"],
+  configs = ["//mywebapp:app.yaml", //mywebapp:appengine_config.py],
+  srcs = ["main.py"],
 )
 
 #optional test
@@ -42,7 +42,6 @@ AppEngine SDK to upload your application to AppEngine. It takes an optional argu
 APP_ID. If not specified, it uses the default APP_ID provided in the application
 app.yaml.
 """
-
 
 def _find_locally_or_download_impl(repository_ctx):
   if 'PY_APPENGINE_SDK_PATH' in repository_ctx.os.environ:
@@ -88,12 +87,9 @@ def _py_appengine_binary_base_impl(ctx):
      - the script to run locally
      - the script to deploy
   """
-
-  #TODO(maximermilov): add supports for custom imports
+  # TODO(maximermilov): Add support for custom import paths.
   config = ctx.actions.declare_file("appengine_config.py")
-  ctx.actions.write(
-      output=config,
-      content="""
+  config_content = """
 import os
 import sys
 
@@ -101,9 +97,7 @@ module_space = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'extern
 
 repo_dirs = [os.path.join(module_space, d) for d in os.listdir(module_space)]
 sys.path.extend([d for d in repo_dirs if os.path.isdir(d)])
-""",
-  )
-
+"""
   symlinks = {
       "appengine_config.py": config,
   }
@@ -111,7 +105,26 @@ sys.path.extend([d for d in repo_dirs if os.path.isdir(d)])
   for c in ctx.attr.configs:
     files = c.files.to_list()
     for f in files:
-      symlinks[f.basename] = f
+      if f.basename == "appengine_config.py":
+        # Symlink the user-provided appengine_config file(s) to avoid name
+        # collisions and add import(s) from the custom appengine_config being
+        # created.
+        new_path = f.short_path.replace("appengine_config", "real_appengine_config")
+        symlinks[new_path] = f
+
+        import_path = new_path.rsplit(".", 1)[0].replace("/", ".")
+        config_content += "\nimport {}\n".format(import_path)
+      elif f.extension == "yaml":
+        # Symlink YAML config files to the top-level directory.
+        symlinks[f.basename] = f
+      else:
+        # Fail if any .py files were provided that were not appengine_configs.
+        fail("Invalid config file provided: " + f.short_path)
+
+  ctx.actions.write(
+      output=config,
+      content=config_content,
+  )
 
   runfiles = ctx.runfiles(
       transitive_files=ctx.attr.devappserver.data_runfiles.files,
@@ -181,7 +194,7 @@ py_appengine_binary_base = rule(
         "binary": attr.label(),
         "devappserver": attr.label(default=Label("@com_google_appengine_python//:dev_appserver")),
         "appcfg": attr.label(default=Label("@com_google_appengine_python//:appcfg")),
-        "configs": attr.label_list(allow_files=FileType([".yaml"])),
+        "configs": attr.label_list(allow_files=FileType([".yaml", ".py"])),
     },
     executable = True,
     outputs = {
