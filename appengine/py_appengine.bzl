@@ -35,12 +35,12 @@ To run locally:
 bazel run :mywebapp
 
 To deploy on Google app engine:
-bazel run :mywebapp.deploy
+bazel run :mywebapp.deploy -- my-project-id [module.yaml files ...]
 
 Finally, the appengine macro also create a .deploy target that will try to use the
-AppEngine SDK to upload your application to AppEngine. It takes an optional argument: the
-APP_ID. If not specified, it uses the default APP_ID provided in the application
-app.yaml.
+AppEngine SDK to upload your application to AppEngine. It requires the project
+ID as the first argument and takes 0 or more module YAML files. If no YAML
+files are specified, only "app.yaml", the main module, will be deployed.
 """
 
 
@@ -157,11 +157,12 @@ cp -R $ROOT $tmp_dir
 trap "{{ cd ${{root_path}}; rm -rf $tmp_dir; }}" EXIT
 rm -Rf $tmp_dir/{1}/external/com_google_appengine_python
 if [ -n "${{1-}}" ]; then
-  $ROOT/{0} -A "$1" update $tmp_dir/{1}
+  (cd $tmp_dir/{1} && $ROOT/{0} -A "$1" update ${{@:2}})
   retCode=$?
 else
-  $ROOT/{0} update $tmp_dir/{1}
-  retCode=$?
+  echo "\033[1;31mERROR:\033[0m Application ID must be provided as first argument
+  USAGE: bazel run path/to/my/gae_binary_target.deploy -- my-project-id"
+  retCode=-1
 fi
 
 rm -Rf $tmp_dir
