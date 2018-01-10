@@ -32,10 +32,10 @@ git_repository(
     # Check https://github.com/bazelbuild/rules_appengine/releases for the latest version.
     tag = "0.0.4",
 )
-#Java
+# Java
 load("@io_bazel_rules_appengine//appengine:appengine.bzl", "appengine_repositories")
 appengine_repositories()
-#Python
+# Python
 load("@io_bazel_rules_appengine//appengine:py_appengine.bzl", "py_appengine_repositories")
 py_appengine_repositories()
 ```
@@ -399,7 +399,7 @@ py_appengine_test(name, srcs, deps=[], data=[], libraries={})
 
 ## Using a local AppEngine SDK
 
-###Java
+### Java
 
 If you already have a local copy of the AppEngine SDK, you can specify the path to
 that in your WORKSPACE file (instead of Bazel downloading another copy):
@@ -414,7 +414,7 @@ new_local_repository(
 ```
 
 
-###Python
+### Python
 
 You can, optionally, specify the environment variable PY_APPENGINE_SDK_PATH to use
 an SDK that is on your filesystem (instead of downloading a new one).
