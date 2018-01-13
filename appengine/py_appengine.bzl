@@ -37,10 +37,10 @@ bazel run :mywebapp
 To deploy on Google app engine:
 bazel run :mywebapp.deploy -- my-project-id [module.yaml files ...]
 
-Finally, the appengine macro also create a .deploy target that will try to use the
-AppEngine SDK to upload your application to AppEngine. It requires the project
-ID as the first argument and takes 0 or more module YAML files. If no YAML
-files are specified, only "app.yaml", the main module, will be deployed.
+Finally, the appengine macro also create a .deploy target that will try to use
+the AppEngine SDK to upload your application to AppEngine. It requires the
+project ID as the first argument and takes 0 or more module YAML files. If no
+YAML files are specified, only "app.yaml", the main module, will be deployed.
 """
 
 def _find_locally_or_download_impl(repository_ctx):
@@ -170,18 +170,31 @@ cp -R $ROOT $tmp_dir
 trap "{{ cd ${{root_path}}; rm -rf $tmp_dir; }}" EXIT
 rm -Rf $tmp_dir/{1}/external/com_google_appengine_python
 if [ -n "${{1-}}" ]; then
-  (cd $tmp_dir/{1} && $ROOT/{0} -A "$1" update ${{@:2}})
-  retCode=$?
+  has_app_yaml=$(echo ${{@:2}} | grep -E "^([^ ]+ +)*app.yaml")
+  other_mod_cfgs=$(echo ${{@:2}} | xargs printf "%s\n" | grep -v "^app\.yaml$" | xargs echo)
+  ret_code=0
+  # Secondary modules need to be uploaded first because if any of them are
+  # referenced in dispatch.yaml, App Engine must have a version of that module
+  # prior to the app.yaml upload.
+  if [ -n "$other_mod_cfgs" ]; then
+    (cd $tmp_dir/{1} && $ROOT/{0} -A "$1" update $other_mod_cfgs)
+    ret_code=$?
+  fi
+  if [ $ret_code -eq 0 ] && [ -n "$has_app_yaml" ] || [ -z "$other_mod_cfgs" ]; then
+    $ROOT/{0} -A "$1" update $tmp_dir/{1}
+    ret_code=$?
+  fi
+
 else
   echo "\033[1;31mERROR:\033[0m Application ID must be provided as first argument
-  USAGE: bazel run path/to/my/gae_binary_target.deploy -- my-project-id"
-  retCode=-1
+  USAGE: bazel run path/to/my/gae_binary_target.deploy -- my-project-id [module.yaml files ...]"
+  ret_code=-1
 fi
 
 rm -Rf $tmp_dir
 trap - EXIT
 
-exit $retCode
+exit $ret_code
 """.format(ctx.attr.appcfg.files_to_run.executable.short_path, ctx.workspace_name),
       is_executable=True,
   )
