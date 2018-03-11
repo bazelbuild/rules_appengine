@@ -55,7 +55,7 @@ def _find_locally_or_download_impl(repository_ctx):
         output=".",
         sha256="65f2092e671ae80b316ac8f70b14df687f91959cc8926bd4eb4c26b780ea0af5",
         stripPrefix="google_appengine")
-  repository_ctx.template("BUILD", Label("//appengine:pysdk.BUILD"))
+  repository_ctx.template("BUILD", Label("//appengine/py:sdk.BUILD"))
 
 _find_locally_or_download = repository_rule(
     local = False,
@@ -63,19 +63,19 @@ _find_locally_or_download = repository_rule(
 )
 
 def py_appengine_repositories():
-  _find_locally_or_download(name = "com_google_appengine_python")
+  _find_locally_or_download(name = "com_google_appengine_py")
 
 def py_appengine_test(name, srcs, deps=[], data=[], libraries={}, size=None):
   """A variant of py_test that sets up an App Engine environment."""
-  extra_deps = ["@com_google_appengine_python//:appengine"]
+  extra_deps = ["@com_google_appengine_py//:appengine"]
   for l in libraries:
-    extra_deps.append("@com_google_appengine_python//:{0}-{1}".format(l, libraries[l]))
+    extra_deps.append("@com_google_appengine_py//:{0}-{1}".format(l, libraries[l]))
   native.py_test(
-      name=name,
-      deps=deps + extra_deps,
-      srcs=srcs,
-      data=data,
-      size=size,
+      name = name,
+      deps = deps + extra_deps,
+      srcs = srcs,
+      data = data,
+      size = size,
   )
 
 def _py_appengine_binary_base_impl(ctx):
@@ -127,73 +127,24 @@ sys.path.extend([d for d in repo_dirs if os.path.isdir(d)])
       symlinks=symlinks,
   ).merge(ctx.attr.binary.data_runfiles).merge(ctx.attr.appcfg.data_runfiles)
 
-  ctx.actions.write(
-      output=ctx.outputs.executable,
-      content="""
-#!/bin/bash
+  substitutions = {
+      "%{appcfg}": ctx.attr.appcfg.files_to_run.executable.short_path,
+      "%{devappserver}":
+          ctx.attr.devappserver.files_to_run.executable.short_path,
+      "%{workspace_name}": ctx.workspace_name,
+  }
 
-case "$0" in
-/*) self="$0" ;;
-*)  self="$PWD/$0";;
-esac
-if [[ -e "$self.runfiles/{1}" ]]; then
-  RUNFILES="$self.runfiles/{1}"
-  cd $RUNFILES
-fi
+  ctx.actions.expand_template(
+      output = ctx.outputs.executable,
+      template = ctx.file._runner_template,
+      substitutions = substitutions,
+      is_executable = True)
 
-{0} --skip_sdk_update_check 1 app.yaml
-""".format(ctx.attr.devappserver.files_to_run.executable.short_path, ctx.workspace_name),
-      is_executable=True,
-  )
-
-  ctx.actions.write(
-      output=ctx.outputs.deploy_sh,
-      content="""
-#!/bin/bash
-
-case "$0" in
-/*) self="$0" ;;
-*)  self="$PWD/$0";;
-esac
-if [[ -e "$self.runfiles/{1}" ]]; then
-  RUNFILES="$self.runfiles/{1}"
-  cd $RUNFILES
-fi
-
-ROOT=$PWD
-tmp_dir=$(mktemp -d ${{TMPDIR:-/tmp}}/war.XXXXXXXX)
-cp -R $ROOT $tmp_dir
-trap "{{ cd ${{root_path}}; rm -rf $tmp_dir; }}" EXIT
-rm -Rf $tmp_dir/{1}/external/com_google_appengine_python
-if [ -n "${{1-}}" ]; then
-  has_app_yaml=$(echo ${{@:2}} | grep -E "^([^ ]+ +)*app.yaml")
-  other_mod_cfgs=$(echo ${{@:2}} | xargs printf "%s\n" | grep -v "^app\.yaml$" | xargs echo)
-  ret_code=0
-  # Secondary modules need to be uploaded first because if any of them are
-  # referenced in dispatch.yaml, App Engine must have a version of that module
-  # prior to the app.yaml upload.
-  if [ -n "$other_mod_cfgs" ]; then
-    (cd $tmp_dir/{1} && $ROOT/{0} -A "$1" update $other_mod_cfgs)
-    ret_code=$?
-  fi
-  if [ $ret_code -eq 0 ] && [ -n "$has_app_yaml" ] || [ -z "$other_mod_cfgs" ]; then
-    $ROOT/{0} -A "$1" update $tmp_dir/{1}
-    ret_code=$?
-  fi
-
-else
-  echo "\033[1;31mERROR:\033[0m Application ID must be provided as first argument
-  USAGE: bazel run path/to/my/gae_binary_target.deploy -- my-project-id [module.yaml files ...]"
-  ret_code=-1
-fi
-
-rm -Rf $tmp_dir
-trap - EXIT
-
-exit $ret_code
-""".format(ctx.attr.appcfg.files_to_run.executable.short_path, ctx.workspace_name),
-      is_executable=True,
-  )
+  ctx.actions.expand_template(
+      output = ctx.outputs.deploy_sh,
+      template = ctx.file._deploy_template,
+      substitutions = substitutions,
+      is_executable = True)
 
   return struct(runfiles=runfiles, py=ctx.attr.binary.py)
 
@@ -201,12 +152,20 @@ py_appengine_binary_base = rule(
     _py_appengine_binary_base_impl,
     attrs = {
         "binary": attr.label(),
-        "devappserver": attr.label(default = Label("@com_google_appengine_python//:dev_appserver")),
-        "appcfg": attr.label(default = Label("@com_google_appengine_python//:appcfg")),
+        "devappserver": attr.label(default = Label("@com_google_appengine_py//:dev_appserver")),
+        "appcfg": attr.label(default = Label("@com_google_appengine_py//:appcfg")),
         "configs": attr.label_list(allow_files = FileType([
             ".yaml",
             ".py",
         ])),
+        "_deploy_template": attr.label(
+            default = Label("//appengine/py:deploy_template"),
+            single_file = True,
+        ),
+        "_runner_template": attr.label(
+            default = Label("//appengine/py:runner_template"),
+            single_file = True,
+        ),
     },
     executable = True,
     outputs = {
@@ -222,10 +181,11 @@ def py_appengine_binary(name, srcs, configs, deps=[], data=[]):
     fail("srcs should not be empty.")
   # uses py_binary because it generates __init__.py files
   native.py_binary(
-      name="_py_appengine_" + name,
+      name = "_py_appengine_" + name,
       srcs = srcs,
-      deps=deps,
-      main=srcs[0],  # no entry point, use arbitrary source file
+      deps = deps,
+      data = data,
+      main = srcs[0],  # no entry point, use arbitrary source file
   )
   py_appengine_binary_base(
       name=name,

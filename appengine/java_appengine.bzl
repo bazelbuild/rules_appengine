@@ -184,15 +184,16 @@ def _war_impl(ctxt):
       "%{data_path}": data_path
   }
 
-  ctxt.template_action(
+  ctxt.actions.expand_template(
       output = executable,
       template = ctxt.file._runner_template,
       substitutions = substitutions,
-      executable = True)
-  ctxt.template_action(
+      is_executable = True)
+  ctxt.actions.expand_template(
       output = ctxt.outputs.deploy_sh,
       template = ctxt.file._deploy_template,
-      substitutions = substitutions)
+      substitutions = substitutions,
+      is_executable = True)
 
   runfiles = ctxt.runfiles(files = [war, executable]
                            + list(transitive_deps)
@@ -272,44 +273,12 @@ APPENGINE_VERSION = "1.9.57"
 
 APPENGINE_DIR = "appengine-java-sdk-" + APPENGINE_VERSION
 
-APPENGINE_BUILD_FILE = """
-# BUILD file to use the Java AppEngine SDK with a remote repository.
-java_import(
-    name = "jars",
-    jars = glob(["lib/**/*.jar"]),
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "user",
-    jars = glob(["lib/user/*.jar"]),
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "api",
-    jars = [
-        "lib/agent/appengine-agent.jar",
-        "lib/appengine-tools-api.jar",
-        "lib/impl/appengine-api.jar",
-    ],
-    visibility = ["//visibility:public"],
-    neverlink = 1,
-)
-
-filegroup(
-    name = "sdk",
-    srcs = glob(["**"]),
-    visibility = ["//visibility:public"],
-)
-"""
-
 def java_appengine_repositories():
   native.new_http_archive(
     name = "com_google_appengine_java",
     url = "http://central.maven.org/maven2/com/google/appengine/appengine-java-sdk/%s/%s.zip" % (APPENGINE_VERSION, APPENGINE_DIR),
     sha256 = "63f89be498d1e7462c03fe2b66d7773a9e5dd04ffb71e3b59a5fa74a7b810997",
-    build_file_content = APPENGINE_BUILD_FILE,
+    build_file = "appengine/java/sdk.BUILD",
     strip_prefix = APPENGINE_DIR,
   )
 
