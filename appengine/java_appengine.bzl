@@ -213,11 +213,11 @@ appengine_war_base = rule(
             single_file = True,
         ),
         "_runner_template": attr.label(
-            default = Label("//appengine:runner_template"),
+            default = Label("//appengine/java:runner_template"),
             single_file = True,
         ),
         "_deploy_template": attr.label(
-            default = Label("//appengine:deploy_template"),
+            default = Label("//appengine/java:deploy_template"),
             single_file = True,
         ),
         "_appengine_sdk": attr.label(
@@ -305,7 +305,7 @@ filegroup(
 )
 """
 
-def appengine_repositories():
+def java_appengine_repositories():
   native.new_http_archive(
     name = "com_google_appengine_java",
     url = "http://central.maven.org/maven2/com/google/appengine/appengine-java-sdk/%s/%s.zip" % (APPENGINE_VERSION, APPENGINE_DIR),

@@ -1,4 +1,4 @@
 workspace(name = "io_bazel_rules_appengine")
 
-load("//appengine:appengine.bzl", "appengine_repositories")
-appengine_repositories()
+load("//appengine:java_appengine.bzl", "java_appengine_repositories")
+java_appengine_repositories()

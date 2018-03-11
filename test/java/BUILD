@@ -1,13 +1,13 @@
-load("//appengine:appengine.bzl", "appengine_war")
+load("//appengine:java_appengine.bzl", "appengine_war")
 
 appengine_war(
     name = "test-war",
     data = [
         ":web-inf",
-        "//test/data:gen-data",
-        "//test/data:test-data",
+        "//test/java/data:gen-data",
+        "//test/java/data:test-data",
     ],
-    data_path = "/test",
+    data_path = "/test/java",
     jars = [":app_deploy.jar"],
     testonly = 1,
 )

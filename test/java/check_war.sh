@@ -6,7 +6,7 @@ RUNFILES="$TEST_SRCDIR"
 if [ -d "${TEST_SRCDIR}/io_bazel_rules_appengine" ]; then
   RUNFILES="${TEST_SRCDIR}/io_bazel_rules_appengine"
 fi
-TEST_WAR="${RUNFILES}/test/test-war.war"
+TEST_WAR="${RUNFILES}/test/java/test-war.war"
 JAR="${TEST_SRCDIR}/local_jdk/bin/jar"
 
 function assert_war_contains() {

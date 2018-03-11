@@ -1,5 +1,5 @@
 package(
-    default_visibility = ["//test:__pkg__"],
+    default_visibility = ["//test/java:__pkg__"],
     default_testonly = 1,
 )
 

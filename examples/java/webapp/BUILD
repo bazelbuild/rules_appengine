@@ -1,5 +1,5 @@
 filegroup(
     name = "webapp",
     srcs = glob(["**"]),
-    visibility = ["//examples:__pkg__"],
+    visibility = ["//examples/java:__pkg__"],
 )
