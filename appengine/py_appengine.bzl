@@ -57,16 +57,13 @@ def _find_locally_or_download_impl(repository_ctx):
         stripPrefix="google_appengine")
   repository_ctx.template("BUILD", Label("//appengine:pysdk.BUILD"))
 
-
 _find_locally_or_download = repository_rule(
     local = False,
     implementation = _find_locally_or_download_impl,
 )
 
-
 def py_appengine_repositories():
   _find_locally_or_download(name = "com_google_appengine_python")
-
 
 def py_appengine_test(name, srcs, deps=[], data=[], libraries={}, size=None):
   """A variant of py_test that sets up an App Engine environment."""
@@ -80,7 +77,6 @@ def py_appengine_test(name, srcs, deps=[], data=[], libraries={}, size=None):
       data=data,
       size=size,
   )
-
 
 def _py_appengine_binary_base_impl(ctx):
   """Implementation of the rule that creates
@@ -201,21 +197,22 @@ exit $ret_code
 
   return struct(runfiles=runfiles, py=ctx.attr.binary.py)
 
-
 py_appengine_binary_base = rule(
     _py_appengine_binary_base_impl,
     attrs = {
         "binary": attr.label(),
-        "devappserver": attr.label(default=Label("@com_google_appengine_python//:dev_appserver")),
-        "appcfg": attr.label(default=Label("@com_google_appengine_python//:appcfg")),
-        "configs": attr.label_list(allow_files=FileType([".yaml", ".py"])),
+        "devappserver": attr.label(default = Label("@com_google_appengine_python//:dev_appserver")),
+        "appcfg": attr.label(default = Label("@com_google_appengine_python//:appcfg")),
+        "configs": attr.label_list(allow_files = FileType([
+            ".yaml",
+            ".py",
+        ])),
     },
     executable = True,
     outputs = {
         "deploy_sh": "%{name}_deploy.sh",
     },
 )
-
 
 def py_appengine_binary(name, srcs, configs, deps=[], data=[]):
   """Convenience macro that builds the app and offers an executable

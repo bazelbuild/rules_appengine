@@ -18,7 +18,10 @@ package(default_visibility = ["//visibility:public"])
 py_library(
     name = "appengine",
     srcs = glob(["**/*.py"]),
-    data = glob(["**/*"], exclude=["**/*.py"]),
+    data = glob(
+        ["**/*"],
+        exclude = ["**/*.py"],
+    ),
 )
 
 py_binary(
@@ -91,8 +94,8 @@ py_library(
 py_library(
     name = "webapp2-2.5.2",
     srcs = glob(["lib/webapp2-2.5.2/**/*.py"]),
-    deps = [":webob-1.2.3"],
     imports = ["lib/webapp2-2.5.2"],
+    deps = [":webob-1.2.3"],
 )
 
 py_library(
@@ -112,7 +115,6 @@ py_library(
     srcs = glob(["lib/yaml-3.10/**/*.py"]),
     imports = ["lib/yaml-3.10"],
 )
-
 
 py_library(
     name = "endpoints-latest",

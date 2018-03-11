@@ -1,6 +1,6 @@
 package(
-    default_visibility = ["//test/java:__pkg__"],
     default_testonly = 1,
+    default_visibility = ["//test/java:__pkg__"],
 )
 
 filegroup(
@@ -10,6 +10,6 @@ filegroup(
 
 genrule(
     name = "gen-data",
-    cmd = "echo hi > $@",
     outs = ["gen-data.out"],
+    cmd = "echo hi > $@",
 )

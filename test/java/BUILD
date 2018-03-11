@@ -2,6 +2,7 @@ load("//appengine:java_appengine.bzl", "appengine_war")
 
 appengine_war(
     name = "test-war",
+    testonly = 1,
     data = [
         ":web-inf",
         "//test/java/data:gen-data",
@@ -9,7 +10,6 @@ appengine_war(
     ],
     data_path = "/test/java",
     jars = [":app_deploy.jar"],
-    testonly = 1,
 )
 
 java_binary(
@@ -21,9 +21,9 @@ sh_test(
     name = "check_war",
     srcs = ["check_war.sh"],
     data = [
+        ":test-war",
         "@local_jdk//:jar",
         "@local_jdk//:jdk-default",
-        ":test-war",
     ],
 )
 
