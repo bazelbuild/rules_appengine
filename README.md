@@ -24,36 +24,71 @@ support but can be easily modified to handle a standard web application.
 <a name="setup"></a>
 ## Setup
 
-To be able to use the Java App Engine rules, you must make the App Engine SDK
-available to Bazel. The easiest way to do so is by adding the following to your
+To be able to use the rules, you must make the App Engine SDK available to
+Bazel. The easiest way to do so is by adding the following to your
 `WORKSPACE` file:
+
+Note: The `${LANG}_appengine_repository()` lines are only needed for the languages you plan to use.
 
 ```python
 git_repository(
     name = "io_bazel_rules_appengine",
     remote = "https://github.com/bazelbuild/rules_appengine.git",
     # Check https://github.com/bazelbuild/rules_appengine/releases for the latest version.
-    tag = "0.0.4",
+    tag = "0.0.7",
 )
 # Java
-load("@io_bazel_rules_appengine//appengine:appengine.bzl", "appengine_repositories")
-appengine_repositories()
+load(
+    "@io_bazel_rules_appengine//appengine:java_appengine.bzl",
+    "java_appengine_repositories",
+)
+
+java_appengine_repositories()
+
 # Python
-load("@io_bazel_rules_appengine//appengine:py_appengine.bzl", "py_appengine_repositories")
+load(
+    "@io_bazel_rules_appengine//appengine:py_appengine.bzl",
+    "py_appengine_repositories",
+)
+
 py_appengine_repositories()
 ```
 
-The AppEngine rules download the AppEngine SDK, which is a few hundred megabytes
-in size. To avoid downloading this multiple times for multiple projects or
-inadvertently re-downloading it, you might want to add the following line to
-your `$HOME/.bazelrc` file:
+The App Engine rules download the App Engine SDK, which is a few hundred
+megabytes in size. To avoid downloading this multiple times for multiple
+projects or inadvertently re-downloading it, you might want to add the
+following lines to your `$HOME/.bazelrc` file:
 
 ```
 build --experimental_repository_cache=/home/user/.bazel/cache
+fetch --experimental_repository_cache=/home/user/.bazel/cache
+```
+
+### Requesting a specific App Engine SDK
+
+All ${LANG}_appengine_repository macros accept optional arguments `version`
+and `sha256`.
+
+```python
+py_appengine_repositories(
+    version = '1.9.67',
+    sha256 = 'f9f45150643424cb164185d9134b86511c2bec3001499247ef9027f1605ef8a3',
+)
+```
+
+### Using a predownloaded SDK version
+
+You can, optionally, specify the environment variable
+`${LANG}_APPENGINE_SDK_PATH` to use an SDK that is unzipped on your filesystem
+(instead of downloading a new one).
+
+```
+PY_APPENGINE_SDK_PATH=/path/to/google_appengine bazel build //whatever
+JAVA_APPENGINE_SDK_PATH=/path/to/appengine-java-sdk-1.9.50 bazel build //whatever
 ```
 
 <a name="basic-example"></a>
-## Basic Example
+## Basic Java Example
 
 Suppose you have the following directory structure for a simple App Engine
 application:
@@ -77,7 +112,7 @@ application:
 Then, to build your webapp, your `hello_app/BUILD` can look like:
 
 ```python
-load("@io_bazel_rules_appengine//appengine:appengine.bzl", "appengine_war")
+load("@io_bazel_rules_appengine//appengine:java_appengine.bzl", "appengine_war")
 
 java_library(
     name = "mylib",
@@ -100,7 +135,7 @@ For simplicity, you can use the `java_war` rule to build an app from source.
 Your `hello_app/BUILD` file would then look like:
 
 ```python
-load("@io_bazel_rules_appengine//appengine:appengine.bzl", "java_war")
+load("@io_bazel_rules_appengine//appengine:java_appengine.bzl", "java_war")
 
 java_war(
     name = "myapp",
@@ -135,7 +170,7 @@ Another target `//hello_app:myapp.deploy` allows you to deploy your
 application to App Engine. It takes an optional argument: the
 `APP_ID`. If not specified, it uses the default `APP_ID` provided in
 the application. This target needs to open a browser to authenticate
-with AppEngine, then have you copy-paste a "key" from the browser in
+with App Engine, then have you copy-paste a "key" from the browser in
 the terminal. Since Bazel closes standard input, you can only input
 this by building the target and then running:
 
@@ -148,14 +183,16 @@ App Engine so you can just do a normal `bazel run
 //hello_app:myapp.deploy -- APP_ID` to deploy next versions of
 your application.
 
-*Note:* AppEngine uses Java 7. If you are using a more recent version of Java,
+## Java specific details
+
+*Note:* App Engine uses Java 7. If you are using a more recent version of Java,
 you will get the following error message when you try to deploy:
 
 ```
 java.lang.IllegalArgumentException: Class file is Java 8 but max supported is Java 7
 ```
 
-To build with Java 7, use the toolchain bundled with these AppEngine rules:
+To build with Java 7, use the toolchain bundled with these App Engine rules:
 
 ```
 $ bazel build --java_toolchain=@io_bazel_rules_appengine//appengine:jdk7 //my-project
@@ -292,6 +329,8 @@ java_war(name, data, data_path, **kwargs)
   </tbody>
 </table>
 
+## Python specific details
+
 <a name="py_appengine_binary"></a>
 ## py_appengine_binary
 ```python
@@ -399,29 +438,3 @@ py_appengine_test(name, srcs, deps=[], data=[], libraries={})
     </tr>
   </tbody>
 </table>
-
-## Using a local AppEngine SDK
-
-### Java
-
-If you already have a local copy of the AppEngine SDK, you can specify the path to
-that in your WORKSPACE file (instead of Bazel downloading another copy):
-
-```
-load('@io_bazel_rules_appengine//appengine:appengine.bzl', 'APPENGINE_BUILD_FILE')
-new_local_repository(
-    name = 'com_google_appengine_java',
-    path = '/path/to/appengine-java-sdk-version',
-    build_file_content = APPENGINE_BUILD_FILE,
-)
-```
-
-
-### Python
-
-You can, optionally, specify the environment variable PY_APPENGINE_SDK_PATH to use
-an SDK that is on your filesystem (instead of downloading a new one).
-
-```
-PY_APPENGINE_SDK_PATH=/path/to/appengine-python-sdk-1.9.50 bazel build //whatever
-```
