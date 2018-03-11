@@ -78,6 +78,7 @@ ARGS=(
   "${JVM_FLAGS_CMDLINE[@]}"
   "-Dappengine.sdk.root=${APP_ENGINE_ROOT}"
   ${main_class}
+  "--disable_update_check"
   "${ARGS[@]}"
   .
 )
