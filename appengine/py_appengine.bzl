@@ -43,27 +43,19 @@ project ID as the first argument and takes 0 or more module YAML files. If no
 YAML files are specified, only "app.yaml", the main module, will be deployed.
 """
 
-def _find_locally_or_download_impl(repository_ctx):
-  if 'PY_APPENGINE_SDK_PATH' in repository_ctx.os.environ:
-    path = repository_ctx.os.environ['PY_APPENGINE_SDK_PATH']
-    if path == "":
-      fail("PY_APPENGINE_SDK_PATH set, but empty")
-    repository_ctx.symlink(path, ".")
-  else:
-    repository_ctx.download_and_extract(
-        url="https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.61.zip",
-        output=".",
-        sha256="65f2092e671ae80b316ac8f70b14df687f91959cc8926bd4eb4c26b780ea0af5",
-        stripPrefix="google_appengine")
-  repository_ctx.template("BUILD", Label("//appengine/py:sdk.BUILD"))
+load(":variables.bzl", "PY_SDK_VERSION", "PY_SDK_SHA256")
+load(":sdk.bzl", "find_locally_or_download")
 
-_find_locally_or_download = repository_rule(
-    local = False,
-    implementation = _find_locally_or_download_impl,
-)
-
-def py_appengine_repositories():
-  _find_locally_or_download(name = "com_google_appengine_py")
+def py_appengine_repositories(version=PY_SDK_VERSION,
+                              sha256=PY_SDK_SHA256):
+  find_locally_or_download(
+      name = "com_google_appengine_py",
+      lang = 'py',
+      sha256 = sha256,
+      version = version,
+      filename_pattern = "google_appengine_{version}.zip",
+      strip_prefix_pattern = "google_appengine",
+  )
 
 def py_appengine_test(name, srcs, deps=[], data=[], libraries={}, size=None):
   """A variant of py_test that sets up an App Engine environment."""

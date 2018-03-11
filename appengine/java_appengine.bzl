@@ -69,6 +69,9 @@ APP_ID. If not specified, it uses the default APP_ID provided in the application
 web.xml.
 """
 
+load(":variables.bzl", "JAVA_SDK_VERSION", "JAVA_SDK_SHA256")
+load(":sdk.bzl", "find_locally_or_download")
+
 jar_filetype = FileType([".jar"])
 
 def _add_file(in_file, output, path = None):
@@ -269,17 +272,15 @@ def appengine_war(name, jars, data, data_path, testonly = 0):
       testonly = testonly,
   )
 
-APPENGINE_VERSION = "1.9.57"
-
-APPENGINE_DIR = "appengine-java-sdk-" + APPENGINE_VERSION
-
-def java_appengine_repositories():
-  native.new_http_archive(
-    name = "com_google_appengine_java",
-    url = "http://central.maven.org/maven2/com/google/appengine/appengine-java-sdk/%s/%s.zip" % (APPENGINE_VERSION, APPENGINE_DIR),
-    sha256 = "63f89be498d1e7462c03fe2b66d7773a9e5dd04ffb71e3b59a5fa74a7b810997",
-    build_file = "appengine/java/sdk.BUILD",
-    strip_prefix = APPENGINE_DIR,
+def java_appengine_repositories(version=JAVA_SDK_VERSION,
+                                sha256=JAVA_SDK_SHA256):
+  find_locally_or_download(
+      name = "com_google_appengine_java",
+      lang = "java",
+      sha256 = sha256,
+      version = version,
+      filename_pattern = "appengine-java-sdk-{version}.zip",
+      strip_prefix_pattern = "appengine-java-sdk-{version}",
   )
 
   native.maven_jar(
