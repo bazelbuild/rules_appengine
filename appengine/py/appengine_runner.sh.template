@@ -22,4 +22,4 @@ if [[ -e "$self.runfiles/%{workspace_name}" ]]; then
   cd $RUNFILES
 fi
 
-%{devappserver} --skip_sdk_update_check 1 app.yaml
+%{devappserver} --skip_sdk_update_check 1 "$@" app.yaml
