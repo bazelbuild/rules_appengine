@@ -25,8 +25,8 @@ if [[ -z "$JAVA_RUNFILES" ]]; then
 fi
 
 jvm_bin="${JAVA_RUNFILES}/%{java}"
-if [[ ! -x ${jvm_bin} ]]; then
-  jvm_bin=$(which java)
+if [[ ! -x "${jvm_bin}" ]]; then
+  jvm_bin="$(which java)"
 fi
 
 APP_ENGINE_ROOT="${JAVA_RUNFILES}/%{appengine_sdk}"
@@ -41,7 +41,7 @@ classpath="%{classpath}"
 cd "%{data_path}"
 
 mkdir -p WEB-INF/lib
-for i in $(echo $classpath | tr ":" "\n"); do
+for i in $(echo "$classpath" | tr ":" "\n"); do
   jar="WEB-INF/lib/$(basename "$i")"
   rm -f "$jar"
   ln -s "$i" "$jar"
@@ -54,7 +54,7 @@ JVM_FLAGS_CMDLINE=()
 function process_wrapper_argument() {
   case "$1" in
     --jvm_flag=*) JVM_FLAGS_CMDLINE+=( "${1#--jvm_flag=}" ) ;;
-    --jvm_flags=*) JVM_FLAGS_CMDLINE+=( ${1#--jvm_flags=} ) ;;
+    --jvm_flags=*) JVM_FLAGS_CMDLINE+=( "${1#--jvm_flags=}" ) ;;
     *)
       return 1 ;;
   esac
