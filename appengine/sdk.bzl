@@ -14,7 +14,7 @@
 """Language agnostic utility functions for use in the other .bzl files.
 """
 
-load(":variables.bzl", "SDK_URL_PREFIX")
+load(":variables.bzl", "APPENGINE_VERSION", "SDK_URL_PREFIX")
 
 def _find_locally_or_download_impl(repository_ctx):
   lang = repository_ctx.attr.lang
@@ -52,7 +52,8 @@ find_locally_or_download = repository_rule(
         ),
         "version": attr.string(
             mandatory = True,
-            doc = "The SDK version to download. Usually of the form 1.9.57.",
+            doc = "The SDK version to download. Usually of the form %s."
+                  % APPENGINE_VERSION,
         ),
         "strip_prefix_pattern": attr.string(
             default = "google_appengine",
