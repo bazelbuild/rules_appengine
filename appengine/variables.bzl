@@ -2,11 +2,11 @@
 """
 # Not all languages are released for every SDK version. Whenever possible, set
 # ${LANG}_SDK_VERSION = APPENGINE_VERSION.
-APPENGINE_VERSION = "1.9.63"
+APPENGINE_VERSION = "1.9.64"
 
 SDK_URL_PREFIX = "https://storage.googleapis.com/appengine-sdks/featured"
 
-JAVA_SDK_SHA256 = "477eb0bdec2c98fa68e4d0d9cbd1329c140e907fa64be2c3c9c065373369e93b"
+JAVA_SDK_SHA256 = "8eb229a6f2a1d6dbe4345ba854b7388c77abfd64af1f9fc8bdd1316811b2f8fc"
 
 JAVA_SDK_VERSION = APPENGINE_VERSION
 
