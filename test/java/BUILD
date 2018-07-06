@@ -20,10 +20,13 @@ java_binary(
 sh_test(
     name = "check_war",
     srcs = ["check_war.sh"],
+    args = ["$(JAVABASE)"],
     data = [
         ":test-war",
-        "@local_jdk//:jar",
-        "@local_jdk//:jdk-default",
+        "@bazel_tools//tools/jdk:current_java_runtime",
+    ],
+    toolchains = [
+        "@bazel_tools//tools/jdk:current_java_runtime",
     ],
 )
 

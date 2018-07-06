@@ -7,7 +7,7 @@ if [ -d "${TEST_SRCDIR}/io_bazel_rules_appengine" ]; then
   RUNFILES="${TEST_SRCDIR}/io_bazel_rules_appengine"
 fi
 TEST_WAR="${RUNFILES}/test/java/test-war.war"
-JAR="${TEST_SRCDIR}/local_jdk/bin/jar"
+JAR="$1/bin/jar"
 
 function assert_war_contains() {
   local needle="$1"
