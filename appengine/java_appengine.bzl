@@ -81,7 +81,7 @@ def _add_file(in_file, output, path = None):
     output_path += in_file.short_path[len(path):]
   return [
       "mkdir -p $(dirname %s)" % output_path,
-      "test -L %s || ln -s $(pwd)/%s %s" % (output_path, input_path, output_path)
+      "test -L %s || ln -sf $(pwd)/%s %s" % (output_path, input_path, output_path)
       ]
 
 def _make_war(zipper, input_dir, output):
@@ -105,6 +105,16 @@ def _common_substring(str1, str2):
 def _short_path_dirname(path):
   sp = path.short_path
   return sp[0:len(sp)-len(path.basename)-1]
+
+def _collect_transitive_runtime_deps_for(deps):
+  transitive_runtime_deps = depset()
+  for dep in deps:
+    if JavaInfo in dep:
+      transitive_runtime_deps += dep[JavaInfo].transitive_runtime_deps
+    elif hasattr(dep, "files"):  # a jar file
+      transitive_runtime_deps += dep.files
+
+  return transitive_runtime_deps
 
 def _war_impl(ctxt):
   """Implementation of the rule that creates
@@ -131,12 +141,7 @@ def _war_impl(ctxt):
   inputs = [zipper]
   cmd += ["mkdir -p %s/WEB-INF/lib" % build_output]
 
-  transitive_deps = depset()
-  for jar in ctxt.attr.jars:
-    if hasattr(jar, "java"):  # java_library, java_import
-      transitive_deps += jar.java.transitive_runtime_deps
-    elif hasattr(jar, "files"):  # a jar file
-      transitive_deps += jar.files
+  transitive_deps = _collect_transitive_runtime_deps_for(ctxt.attr.jars)
 
   for dep in transitive_deps:
     cmd += _add_file(dep, build_output + "/WEB-INF/lib")
