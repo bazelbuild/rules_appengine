@@ -81,7 +81,7 @@ def _add_file(in_file, output, path = None):
     output_path += in_file.short_path[len(path):]
   return [
       "mkdir -p $(dirname %s)" % output_path,
-      "test -L %s || ln -sf $(pwd)/%s %s" % (output_path, input_path, output_path)
+      "test -L %s || ln -s $(pwd)/%s %s" % (output_path, input_path, output_path)
       ]
 
 def _make_war(zipper, input_dir, output):
