@@ -18,7 +18,7 @@ function assert_war_contains() {
   return 1
 }
 
-assert_war_contains "./WEB-INF/lib/app_deploy.jar"
+assert_war_contains "./WEB-INF/lib/test_java_app_deploy.jar"
 assert_war_contains "./WEB-INF/lib/appengine-api.jar"
 assert_war_contains "./WEB-INF/appengine-web.xml"
 assert_war_contains "./WEB-INF/web.xml"

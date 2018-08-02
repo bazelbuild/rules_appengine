@@ -77,11 +77,18 @@ jar_filetype = FileType([".jar"])
 def _add_file(in_file, output, path = None):
   output_path = output
   input_path = in_file.path
+
   if path and in_file.short_path.startswith(path):
     output_path += in_file.short_path[len(path):]
+
+  if in_file.basename.endswith(".jar") and in_file.owner.package:
+    filename = "%s/%s" % (in_file.owner.package, in_file.basename)
+    filename = filename.replace("/", "_").replace("=", "_")
+    output_path = "%s/%s" % (output_path, filename)
+
   return [
       "mkdir -p $(dirname %s)" % output_path,
-      "test -L %s || ln -s $(pwd)/%s %s" % (output_path, input_path, output_path)
+      "test -L %s || ln -s $(pwd)/%s %s" % (output_path, input_path, output_path),
       ]
 
 def _make_war(zipper, input_dir, output):
