@@ -19,7 +19,7 @@ case "$0" in
 esac
 if [[ -e "$self.runfiles/%{workspace_name}" ]]; then
   RUNFILES="$self.runfiles/%{workspace_name}"
-  cd $RUNFILES
+  cd "$RUNFILES"
 fi
 
 %{devappserver} --skip_sdk_update_check 1 "$@" app.yaml

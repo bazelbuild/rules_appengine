@@ -19,37 +19,34 @@ case "$0" in
 esac
 if [[ -e "$self.runfiles/%{workspace_name}" ]]; then
   RUNFILES="$self.runfiles/%{workspace_name}"
-  cd $RUNFILES
+  cd "$RUNFILES"
 fi
 
-ROOT=$PWD
-tmp_dir=$(mktemp -d ${{TMPDIR:-/tmp}}/war.XXXXXXXX)
-cp -R $ROOT $tmp_dir
-trap "{{ cd ${{root_path}}; rm -rf $tmp_dir; }}" EXIT
-rm -Rf $tmp_dir/%{workspace_name}/external/com_google_appengine_py
-if [ -n "${{1-}}" ]; then
-  has_app_yaml=$(echo ${{@:2}} | grep -E "^([^ ]+ +)*app.yaml")
-  other_mod_cfgs=$(echo ${{@:2}} | xargs printf "%s\n" | grep -v "^app\.yaml$" | xargs echo)
+ROOT="$PWD"
+tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/war.XXXXXXXX")"
+cp -R "$ROOT" "$tmp_dir"
+trap "{ cd "$ROOT"; rm -rf "$tmp_dir"; }}" EXIT
+rm -Rf "$tmp_dir/%{workspace_name}/external/com_google_appengine_py"
+if [ -n "${1-}" ]; then
+  has_app_yaml="$(echo "${@:2}" | grep -E "^([^ ]+ +)*app.yaml")"
+  other_mod_cfgs="$(echo "${@:2}" | xargs printf "%s\n" | grep -v "^app\.yaml$" | xargs echo)"
   ret_code=0
   # Secondary modules need to be uploaded first because if any of them are
   # referenced in dispatch.yaml, App Engine must have a version of that module
   # prior to the app.yaml upload.
   if [ -n "$other_mod_cfgs" ]; then
-    (cd $tmp_dir/%{workspace_name} && $ROOT/%{appcfg} -A "$1" update $other_mod_cfgs)
-    ret_code=$?
+    (cd "$tmp_dir/%{workspace_name}" && "$ROOT/%{appcfg}" -A "$1" update "$other_mod_cfgs")
+    ret_code="$?"
   fi
-  if [ $ret_code -eq 0 ] && [ -n "$has_app_yaml" ] || [ -z "$other_mod_cfgs" ]; then
-    $ROOT/%{appcfg} -A "$1" update $tmp_dir/%{workspace_name}
-    ret_code=$?
+  if [ "$ret_code" -eq 0 ] && [ -n "$has_app_yaml" ] || [ -z "$other_mod_cfgs" ]; then
+    "$ROOT/%{appcfg}" -A "$1" update "$tmp_dir/%{workspace_name}"
+    ret_code="$?"
   fi
 
 else
-  echo "\033[1;31mERROR:\033[0m Application ID must be provided as first argument
+  echo -e "\033[1;31mERROR:\033[0m Application ID must be provided as first argument
   USAGE: bazel run path/to/my/gae_binary_target.deploy -- my-project-id [module.yaml files ...]"
   ret_code=-1
 fi
-
-rm -Rf $tmp_dir
-trap - EXIT
 
 exit $ret_code
