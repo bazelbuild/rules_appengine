@@ -43,41 +43,43 @@ project ID as the first argument and takes 0 or more module YAML files. If no
 YAML files are specified, only "app.yaml", the main module, will be deployed.
 """
 
-load(":variables.bzl", "PY_SDK_VERSION", "PY_SDK_SHA256")
+load(":variables.bzl", "PY_SDK_SHA256", "PY_SDK_VERSION")
 load(":sdk.bzl", "find_locally_or_download")
 
-def py_appengine_repositories(version=PY_SDK_VERSION,
-                              sha256=PY_SDK_SHA256):
-  find_locally_or_download(
-      name = "com_google_appengine_py",
-      lang = 'py',
-      sha256 = sha256,
-      version = version,
-      filename_pattern = "google_appengine_{version}.zip",
-      strip_prefix_pattern = "google_appengine",
-  )
+def py_appengine_repositories(
+        version = PY_SDK_VERSION,
+        sha256 = PY_SDK_SHA256):
+    find_locally_or_download(
+        name = "com_google_appengine_py",
+        lang = "py",
+        sha256 = sha256,
+        version = version,
+        filename_pattern = "google_appengine_{version}.zip",
+        strip_prefix_pattern = "google_appengine",
+    )
 
-def py_appengine_test(name, srcs, deps=[], data=[], libraries={}, size=None):
-  """A variant of py_test that sets up an App Engine environment."""
-  extra_deps = ["@com_google_appengine_py//:appengine"]
-  for l in libraries:
-    extra_deps.append("@com_google_appengine_py//:{0}-{1}".format(l, libraries[l]))
-  native.py_test(
-      name = name,
-      deps = deps + extra_deps,
-      srcs = srcs,
-      data = data,
-      size = size,
-  )
+def py_appengine_test(name, srcs, deps = [], data = [], libraries = {}, size = None):
+    """A variant of py_test that sets up an App Engine environment."""
+    extra_deps = ["@com_google_appengine_py//:appengine"]
+    for l in libraries:
+        extra_deps.append("@com_google_appengine_py//:{0}-{1}".format(l, libraries[l]))
+    native.py_test(
+        name = name,
+        deps = deps + extra_deps,
+        srcs = srcs,
+        data = data,
+        size = size,
+    )
 
 def _py_appengine_binary_base_impl(ctx):
-  """Implementation of the rule that creates
-     - the script to run locally
-     - the script to deploy
-  """
-  # TODO(maximermilov): Add support for custom import paths.
-  config = ctx.actions.declare_file("appengine_config.py")
-  config_content = """
+    """Implementation of the rule that creates
+       - the script to run locally
+       - the script to deploy
+    """
+
+    # TODO(maximermilov): Add support for custom import paths.
+    config = ctx.actions.declare_file("appengine_config.py")
+    config_content = """
 import os
 import sys
 
@@ -86,59 +88,61 @@ module_space = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'extern
 repo_dirs = [os.path.join(module_space, d) for d in os.listdir(module_space)]
 sys.path.extend([d for d in repo_dirs if os.path.isdir(d)])
 """
-  symlinks = {
-      "appengine_config.py": config,
-  }
+    symlinks = {
+        "appengine_config.py": config,
+    }
 
-  for c in ctx.attr.configs:
-    files = c.files.to_list()
-    for f in files:
-      if f.basename == "appengine_config.py":
-        # Symlink the user-provided appengine_config file(s) to avoid name
-        # collisions and add import(s) from the custom appengine_config being
-        # created.
-        new_path = f.short_path.replace("appengine_config", "real_appengine_config")
-        symlinks[new_path] = f
+    for c in ctx.attr.configs:
+        files = c.files.to_list()
+        for f in files:
+            if f.basename == "appengine_config.py":
+                # Symlink the user-provided appengine_config file(s) to avoid name
+                # collisions and add import(s) from the custom appengine_config being
+                # created.
+                new_path = f.short_path.replace("appengine_config", "real_appengine_config")
+                symlinks[new_path] = f
 
-        import_path = new_path.rsplit(".", 1)[0].replace("/", ".")
-        config_content += "\nimport {}\n".format(import_path)
-      elif f.extension == "yaml":
-        # Symlink YAML config files to the top-level directory.
-        symlinks[f.basename] = f
-      else:
-        # Fail if any .py files were provided that were not appengine_configs.
-        fail("Invalid config file provided: " + f.short_path)
+                import_path = new_path.rsplit(".", 1)[0].replace("/", ".")
+                config_content += "\nimport {}\n".format(import_path)
+            elif f.extension == "yaml":
+                # Symlink YAML config files to the top-level directory.
+                symlinks[f.basename] = f
+            else:
+                # Fail if any .py files were provided that were not appengine_configs.
+                fail("Invalid config file provided: " + f.short_path)
 
-  ctx.actions.write(
-      output=config,
-      content=config_content,
-  )
+    ctx.actions.write(
+        output = config,
+        content = config_content,
+    )
 
-  runfiles = ctx.runfiles(
-      transitive_files=ctx.attr.devappserver.data_runfiles.files,
-      symlinks=symlinks,
-  ).merge(ctx.attr.binary.data_runfiles).merge(ctx.attr.appcfg.data_runfiles)
+    runfiles = ctx.runfiles(
+        transitive_files = ctx.attr.devappserver.data_runfiles.files,
+        symlinks = symlinks,
+    ).merge(ctx.attr.binary.data_runfiles).merge(ctx.attr.appcfg.data_runfiles)
 
-  substitutions = {
-      "%{appcfg}": ctx.attr.appcfg.files_to_run.executable.short_path,
-      "%{devappserver}":
-          ctx.attr.devappserver.files_to_run.executable.short_path,
-      "%{workspace_name}": ctx.workspace_name,
-  }
+    substitutions = {
+        "%{appcfg}": ctx.attr.appcfg.files_to_run.executable.short_path,
+        "%{devappserver}": ctx.attr.devappserver.files_to_run.executable.short_path,
+        "%{gcloud_path}": ctx.attr.gcloud.files_to_run.executable.short_path,
+        "%{workspace_name}": ctx.workspace_name,
+    }
 
-  ctx.actions.expand_template(
-      output = ctx.outputs.executable,
-      template = ctx.file._runner_template,
-      substitutions = substitutions,
-      is_executable = True)
+    ctx.actions.expand_template(
+        output = ctx.outputs.executable,
+        template = ctx.file._runner_template,
+        substitutions = substitutions,
+        is_executable = True,
+    )
 
-  ctx.actions.expand_template(
-      output = ctx.outputs.deploy_sh,
-      template = ctx.file._deploy_template,
-      substitutions = substitutions,
-      is_executable = True)
+    ctx.actions.expand_template(
+        output = ctx.outputs.deploy_sh,
+        template = ctx.file._deploy_template,
+        substitutions = substitutions,
+        is_executable = True,
+    )
 
-  return struct(runfiles=runfiles, py=ctx.attr.binary.py)
+    return struct(runfiles = runfiles, py = ctx.attr.binary.py)
 
 py_appengine_binary_base = rule(
     _py_appengine_binary_base_impl,
@@ -146,6 +150,7 @@ py_appengine_binary_base = rule(
         "binary": attr.label(),
         "devappserver": attr.label(default = Label("@com_google_appengine_py//:dev_appserver")),
         "appcfg": attr.label(default = Label("@com_google_appengine_py//:appcfg")),
+        "gcloud": attr.label(default = Label("@com_google_cloud_sdk//:gcloud")),
         "configs": attr.label_list(allow_files = FileType([
             ".yaml",
             ".py",
@@ -165,32 +170,36 @@ py_appengine_binary_base = rule(
     },
 )
 
-def py_appengine_binary(name, srcs, configs, deps=[], data=[]):
-  """Convenience macro that builds the app and offers an executable
-     target to deploy on Google app engine.
-  """
-  if not srcs:
-    fail("srcs should not be empty.")
-  # uses py_binary because it generates __init__.py files
-  native.py_binary(
-      name = "_py_appengine_" + name,
-      srcs = srcs,
-      deps = deps,
-      data = data,
-      main = srcs[0],  # no entry point, use arbitrary source file
-  )
-  py_appengine_binary_base(
-      name=name,
-      binary=":_py_appengine_" + name,
-      configs=configs,
-  )
-  native.sh_binary(
-      name = "%s.deploy" % name,
-      srcs = ["%s_deploy.sh" % name],
-      data = [name],
-  )
+def py_appengine_binary(name, srcs, configs, deps = [], data = []):
+    """Convenience macro that builds the app and offers an executable
+       target to deploy on Google app engine.
+    """
+    if not srcs:
+        fail("srcs should not be empty.")
+
+    # uses py_binary because it generates __init__.py files
+    native.py_binary(
+        name = "_py_appengine_" + name,
+        srcs = srcs,
+        deps = deps,
+        data = data,
+        main = srcs[0],  # no entry point, use arbitrary source file
+    )
+    py_appengine_binary_base(
+        name = name,
+        binary = ":_py_appengine_" + name,
+        configs = configs,
+    )
+    native.sh_binary(
+        name = "%s.deploy" % name,
+        srcs = ["%s_deploy.sh" % name],
+        data = [
+            name,
+            "@com_google_cloud_sdk//:gcloud",
+        ],
+    )
 
 def py_appengine_library(**kwargs):
-  """Wrapper for py_library
-  """
-  native.py_library(**kwargs)
+    """Wrapper for py_library
+    """
+    native.py_library(**kwargs)
