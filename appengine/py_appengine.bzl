@@ -108,7 +108,7 @@ sys.path.extend([d for d in repo_dirs if os.path.isdir(d)])
                 # Fail if any .py files were provided that were not appengine_configs.
                 fail("Invalid config file provided: " + f.short_path)
 
-    if ctx.attr.dont_overwrite_appengine_config and appengine_config:
+    if ctx.attr.overwrite_appengine_config and appengine_config:
         ctx.actions.run_shell(
             inputs = [appengine_config],
             outputs = [config],
@@ -174,10 +174,10 @@ py_appengine_binary_base = rule(
             ".yaml",
             ".py",
         ])),
-        "dont_overwrite_appengine_config": attr.bool(
-            doc = """"If false, patch the user's appengine_config into the base one. If true, use
+        "overwrite_appengine_config": attr.bool(
+            doc = """"If true, patch the user's appengine_config into the base one. If false, use
                       the user specified config directly.""",
-            default = False
+            default = True,
         ),
         "_deploy_template": attr.label(
             default = Label("//appengine/py:deploy_template"),
@@ -194,7 +194,7 @@ py_appengine_binary_base = rule(
     },
 )
 
-def py_appengine_binary(name, srcs, configs, deps = [], data = [], **kwargs):
+def py_appengine_binary(name, srcs, configs, deps = [], data = [], overwrite_appengine_config = True):
     """Convenience macro that builds the app and offers an executable
 
          target to deploy on Google app engine.
@@ -214,7 +214,7 @@ def py_appengine_binary(name, srcs, configs, deps = [], data = [], **kwargs):
         name = name,
         binary = ":_py_appengine_" + name,
         configs = configs,
-        **kwargs
+        overwrite_appengine_config = overwrite_appengine_config,
     )
     native.sh_binary(
         name = "%s.deploy" % name,
