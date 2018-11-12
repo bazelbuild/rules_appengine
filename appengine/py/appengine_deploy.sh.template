@@ -23,7 +23,11 @@ if [[ -e "$self.runfiles/%{workspace_name}" ]]; then
 fi
 
 ROOT=$PWD
-tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/war.XXXXXXXX")"
+
+# remove double slash from TMPDIR trailing slash
+tmp_dir=$(echo ${TMPDIR:-/tmp}/war.XXXXXXXX | tr -s /)
+tmp_dir="$(mktemp -d "${tmp_dir}")"
+
 cp -R $ROOT $tmp_dir
 trap "{ cd "$ROOT"; rm -rf "$tmp_dir"; }" EXIT
 

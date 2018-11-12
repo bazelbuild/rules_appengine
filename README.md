@@ -47,6 +47,13 @@ java_appengine_repositories()
 
 # Python
 load(
+    "@io_bazel_rules_appengine//appengine:sdk.bzl",
+    "appengine_repositories",
+)
+
+appengine_repositories()
+
+load(
     "@io_bazel_rules_appengine//appengine:py_appengine.bzl",
     "py_appengine_repositories",
 )
@@ -334,7 +341,7 @@ java_war(name, data, data_path, **kwargs)
 <a name="py_appengine_binary"></a>
 ## py_appengine_binary
 ```python
-py_appengine_binary(name, srcs, configs, deps=[], data=[])
+py_appengine_binary(name, srcs, configs, deps=[], data=[], overwrite_appengine_config=True)
 ```
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -382,6 +389,14 @@ py_appengine_binary(name, srcs, configs, deps=[], data=[])
         <p>List of files used by the Web Application at runtime.</p>
       </td>
     </tr>
+    <tr>
+      <td><code>overwrite_appengine_config</code></td>
+      <td>
+        <code>Boolean, optional</code>
+        <p>If true, patch the user's appengine_config into the base one. If false, use
+           the user specified config directly. Set to False to behave pre 0.0.8.</p>
+      </td>
+    </tr>    
   </tbody>
 </table>
 
