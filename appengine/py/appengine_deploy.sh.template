@@ -34,6 +34,6 @@ trap "{ cd "$ROOT"; rm -rf "$tmp_dir"; }" EXIT
 cd "${tmp_dir}/%{workspace_name}"
 rm -Rf "external/com_google_appengine_py"
 
-$ROOT/%{gcloud_path} app deploy "${@:1}"
+$ROOT/%{gcloud_path} app deploy "${@:1}" %{configs}
 
 exit

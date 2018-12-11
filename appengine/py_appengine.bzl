@@ -95,6 +95,7 @@ sys.path.extend([d for d in repo_dirs if os.path.isdir(d)])
     }
 
     appengine_config = None
+    configs = ""
 
     for c in ctx.attr.configs:
         files = c.files.to_list()
@@ -104,6 +105,7 @@ sys.path.extend([d for d in repo_dirs if os.path.isdir(d)])
             elif f.extension == "yaml":
                 # Symlink YAML config files to the top-level directory.
                 symlinks[f.basename] = f
+                configs += " \"" + f.basename + "\""
             else:
                 # Fail if any .py files were provided that were not appengine_configs.
                 fail("Invalid config file provided: " + f.short_path)
@@ -143,6 +145,7 @@ sys.path.extend([d for d in repo_dirs if os.path.isdir(d)])
         "%{devappserver}": ctx.attr.devappserver.files_to_run.executable.short_path,
         "%{gcloud_path}": ctx.attr.gcloud.files_to_run.executable.short_path,
         "%{workspace_name}": ctx.workspace_name,
+        "%{configs}": configs,
     }
 
     ctx.actions.expand_template(
