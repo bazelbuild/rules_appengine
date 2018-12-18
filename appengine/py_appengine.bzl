@@ -173,10 +173,7 @@ py_appengine_binary_base = rule(
         ),
         "appcfg": attr.label(default = Label("@com_google_appengine_py//:appcfg")),
         "gcloud": attr.label(default = Label("@com_google_cloud_sdk//:gcloud")),
-        "configs": attr.label_list(allow_files = FileType([
-            ".yaml",
-            ".py",
-        ])),
+        "configs": attr.label_list(allow_files = [".yaml", ".py"]),
         "overwrite_appengine_config": attr.bool(
             doc = """"If true, patch the user's appengine_config into the base one. If false, use
                       the user specified config directly.""",
@@ -184,11 +181,11 @@ py_appengine_binary_base = rule(
         ),
         "_deploy_template": attr.label(
             default = Label("//appengine/py:deploy_template"),
-            single_file = True,
+            allow_single_file = True,
         ),
         "_runner_template": attr.label(
             default = Label("//appengine/py:runner_template"),
-            single_file = True,
+            allow_single_file = True,
         ),
     },
     executable = True,

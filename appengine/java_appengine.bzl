@@ -72,8 +72,6 @@ web.xml.
 load(":variables.bzl", "JAVA_SDK_VERSION", "JAVA_SDK_SHA256")
 load(":sdk.bzl", "find_locally_or_download")
 
-jar_filetype = FileType([".jar"])
-
 def _add_file(in_file, output, path = None):
   output_path = output
   input_path = in_file.path
@@ -102,7 +100,7 @@ def _make_war(zipper, input_dir, output):
 def _common_substring(str1, str2):
   i = 0
   res = ""
-  for c in str1:
+  for c in str1.elems():
     if str2[i] != c:
       return res
     res += c
@@ -222,19 +220,19 @@ appengine_war_base = rule(
     attrs = {
         "_java": attr.label(
             default = Label("@bazel_tools//tools/jdk:java"),
-            single_file = True,
+            allow_single_file = True,
         ),
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
-            single_file = True,
+            allow_single_file = True,
         ),
         "_runner_template": attr.label(
             default = Label("//appengine/java:runner_template"),
-            single_file = True,
+            allow_single_file = True,
         ),
         "_deploy_template": attr.label(
             default = Label("//appengine/java:deploy_template"),
-            single_file = True,
+            allow_single_file = True,
         ),
         "_appengine_sdk": attr.label(
             default = Label("@com_google_appengine_java//:sdk"),
@@ -243,7 +241,7 @@ appengine_war_base = rule(
             default = [Label("@com_google_appengine_java//:api")],
         ),
         "jars": attr.label_list(
-            allow_files = jar_filetype,
+            allow_files = [".jar"],
             mandatory = True,
         ),
         "data": attr.label_list(allow_files = True),
