@@ -19,7 +19,6 @@ load(
     ":java_appengine.bzl",
     _appengine_war = "appengine_war",
     _appengine_war_base = "appengine_war_base",
-    _jar_filetype = "jar_filetype",
     _java_appengine_repositories = "java_appengine_repositories",
     _java_war = "java_war",
 )
@@ -27,8 +26,6 @@ load(
 appengine_war = _appengine_war
 
 appengine_war_base = _appengine_war_base
-
-jar_filetype = _jar_filetype
 
 java_appengine_repositories = _java_appengine_repositories
 
