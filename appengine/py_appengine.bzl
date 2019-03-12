@@ -162,7 +162,7 @@ sys.path.extend([d for d in repo_dirs if os.path.isdir(d)])
         is_executable = True,
     )
 
-    return struct(runfiles = runfiles, py = ctx.attr.binary.py)
+    return [DefaultInfo(runfiles = runfiles), ctx.attr.binary[PyInfo]]
 
 py_appengine_binary_base = rule(
     _py_appengine_binary_base_impl,
