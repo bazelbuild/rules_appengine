@@ -4,4 +4,6 @@
   <version>1</version>
   <threadsafe>true</threadsafe>
   <public-root>/static</public-root>
+  <runtime>java8</runtime>
+  <threadsafe>true</threadsafe>
 </appengine-web-app>

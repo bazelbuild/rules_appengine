@@ -192,17 +192,18 @@ your application.
 
 ## Java specific details
 
-*Note:* App Engine uses Java 7. If you are using a more recent version of Java,
-you will get the following error message when you try to deploy:
+*Note:* App Engine uses Java 8 (or Java 7, but this runtime is deprecated). If you
+are using a more recent version of Java, you will get the following error message when
+you try to deploy:
 
 ```
-java.lang.IllegalArgumentException: Class file is Java 8 but max supported is Java 7
+java.lang.IllegalArgumentException: Class file is Java 9 but max supported is Java 8
 ```
 
-To build with Java 7, use the toolchain bundled with these App Engine rules:
+To build with Java 8, use the toolchain bundled with these App Engine rules:
 
 ```
-$ bazel build --java_toolchain=@io_bazel_rules_appengine//appengine:jdk7 //my-project
+$ bazel build --java_toolchain=@io_bazel_rules_appengine//appengine:jdk8 //my-project
 ```
 
 To avoid having to specify this toolchain during every build, you can add this
@@ -210,7 +211,7 @@ to your project's `.bazelrc`.  Create a `.bazelrc` file in the root directory of
 your project and add the line:
 
 ```
-build --java_toolchain=@io_bazel_rules_appengine//appengine:jdk7
+build --java_toolchain=@io_bazel_rules_appengine//appengine:jdk8
 ```
 
 <a name="appengine_war"></a>

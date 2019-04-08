@@ -13,7 +13,7 @@ filegroup(
 )
 
 java_toolchain(
-    name = "jdk7",
+    name = "jdk8",
     bootclasspath = ["@bazel_tools//tools/jdk:bootclasspath"],
     extclasspath = ["@bazel_tools//tools/jdk:extdir"],
     genclass = ["@bazel_tools//tools/jdk:GenClass_deploy.jar"],
@@ -27,7 +27,7 @@ java_toolchain(
         "-XX:TieredStopAtLevel=1",
     ],
     singlejar = ["@bazel_tools//tools/jdk:singlejar"],
-    source_version = "7",
-    target_version = "7",
+    source_version = "8",
+    target_version = "8",
     visibility = ["//visibility:public"],
 )

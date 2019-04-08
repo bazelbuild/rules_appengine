@@ -12,10 +12,9 @@ JAVA_SDK_SHA256 = "2c855a7f2a97dd43287569648b9175c4ab6dce61f1720ef02dc9308a74b33
 
 JAVA_SDK_VERSION = APPENGINE_VERSION
 
-PY_SDK_SHA256 = "76b90b3a780c6dfd2e5dcd9d79ec8be2ab7c1146fd445e472f18e3aeb90fabc5"
+PY_SDK_SHA256 = "68a6550118e557821dd2305fa75fec4750aa6d582be2542ac8ca40b782be6948"
 
-# Note: Python ahead of Java
-PY_SDK_VERSION = "1.9.69"
+PY_SDK_VERSION = APPENGINE_VERSION
 
 # TODO: Support other platforms besides linux
 _CLOUD_SDK_BASE_URL = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads"
