@@ -14,7 +14,6 @@ java_import(
 java_import(
     name = "api",
     jars = [
-        "lib/agent/appengine-agent.jar",
         "lib/appengine-tools-api.jar",
         "lib/impl/appengine-api.jar",
     ],
