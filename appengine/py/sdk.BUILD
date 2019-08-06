@@ -86,12 +86,6 @@ py_library(
 )
 
 py_library(
-    name = "six-1.9.0",
-    srcs = glob(["lib/six/**/*.py"]),
-    imports = ["lib/six"],
-)
-
-py_library(
     name = "webapp2-2.5.2",
     srcs = glob(["lib/webapp2-2.5.2/**/*.py"]),
     imports = ["lib/webapp2-2.5.2"],
@@ -144,11 +138,6 @@ py_library(
 py_library(
     name = "PyAMF-latest",
     deps = [":PyAMF-0.7.2"],
-)
-
-py_library(
-    name = "six-latest",
-    deps = [":six-1.9.0"],
 )
 
 py_library(
