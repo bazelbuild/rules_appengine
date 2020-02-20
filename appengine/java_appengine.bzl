@@ -28,6 +28,8 @@ appengine_war(
   # relative to current package or, relative to the workspace root if starting
   # with a leading slash.
   data_path = "/java/com/google/examples/mywebapp",
+  # Optional JVM arguments, such as -Dsome_varaible=somevalue.
+  local_jvm_flags = ["-Dparam1=value1", "-Dparam2=value2"],
 )
 
 To test locally:
@@ -199,6 +201,7 @@ def _war_impl(ctxt):
         "%{appengine_sdk}": appengine_sdk,
         "%{classpath}": (":".join(classpath)),
         "%{data_path}": data_path,
+        "%{local_jvm_flags}": (" ".join(ctxt.attr.local_jvm_flags)),
     }
 
     ctxt.actions.expand_template(
@@ -252,6 +255,7 @@ appengine_war_base = rule(
         ),
         "data": attr.label_list(allow_files = True),
         "data_path": attr.string(),
+        "local_jvm_flags": attr.string_list(),
     },
     executable = True,
     outputs = {
@@ -260,7 +264,7 @@ appengine_war_base = rule(
     },
 )
 
-def java_war(name, data = [], data_path = None, **kwargs):
+def java_war(name, data = [], data_path = None, local_jvm_flags = [], **kwargs):
     """Convenience macro to call appengine_war with Java sources rather than jar.
     """
     native.java_library(name = "lib%s" % name, **kwargs)
@@ -269,9 +273,10 @@ def java_war(name, data = [], data_path = None, **kwargs):
         jars = ["lib%s" % name],
         data = data,
         data_path = data_path,
+        local_jvm_flags = local_jvm_flags,
     )
 
-def appengine_war(name, jars, data, data_path, testonly = 0):
+def appengine_war(name, jars, data, data_path, local_jvm_flags = [], testonly = 0):
     """Convenience macro that builds the war and offers an executable
        target to deploy on Google app engine.
     """
@@ -280,6 +285,7 @@ def appengine_war(name, jars, data, data_path, testonly = 0):
         jars = jars,
         data = data,
         data_path = data_path,
+        local_jvm_flags = local_jvm_flags,
         testonly = testonly,
     )
 
