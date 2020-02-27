@@ -47,6 +47,12 @@ for i in $(echo $classpath | tr ":" "\n"); do
   ln -s "$i" "$jar"
 done
 
+for f in $(echo "%{data_files}" | tr ":" "\n"); do
+  rm -f "$f"
+  mkdir -p `dirname "$f"`
+  ln -s "$JAVA_RUNFILES/$f" "$f"
+done
+
 JVM_FLAGS_CMDLINE=()
 
 # Processes an argument for the wrapper. Returns 0 if the given argument

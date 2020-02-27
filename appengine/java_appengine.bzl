@@ -75,22 +75,24 @@ load("@bazel_tools//tools/build_defs/repo:jvm.bzl", "jvm_maven_import_external")
 load(":variables.bzl", "JAVA_SDK_SHA256", "JAVA_SDK_VERSION")
 load(":sdk.bzl", "find_locally_or_download")
 
-def _add_file(in_file, output, path = None):
-    output_path = output
-    input_path = in_file.path
-
-    if path and in_file.short_path.startswith(path):
-        output_path += in_file.short_path[len(path):]
-
-    if in_file.basename.endswith(".jar") and in_file.owner.package:
-        filename = "%s/%s" % (in_file.owner.package, in_file.basename)
-        filename = filename.replace("/", "_").replace("=", "_")
-        output_path = "%s/%s" % (output_path, filename)
-
+def _link_file(source, dest):
     return [
-        "mkdir -p $(dirname %s)" % output_path,
-        "test -L %s || ln -s $(pwd)/%s %s" % (output_path, input_path, output_path),
+        "mkdir -p $(dirname %s)" % dest,
+        "test -L %s || ln -s $(pwd)/%s %s" % (dest, source, dest),
     ]
+
+def _relative_path(file):
+    return file.path if file.is_source else file.short_path
+
+def _add_dep(dep_file, dep_output_dir):
+    output_path = "%s/%s" % (dep_output_dir, dep_file.basename)
+    return _link_file(dep_file.path, output_path)
+
+def _add_data_file(data_file, output_dir, path):
+    dest_path = _relative_path(data_file)
+    if dest_path.startswith(path):
+        dest_path = dest_path[len(path):]
+    return _link_file(data_file.path, "%s/%s" % (output_dir, dest_path))
 
 def _make_war(zipper, input_dir, output):
     return [
@@ -147,22 +149,22 @@ def _war_impl(ctxt):
     ]
 
     inputs = [zipper]
-    cmd += ["mkdir -p %s/WEB-INF/lib" % build_output]
+    cmd.append("mkdir -p %s/WEB-INF/lib" % build_output)
 
     transitive_deps = _collect_transitive_runtime_deps_for(ctxt.attr.jars)
 
     for dep in transitive_deps.to_list():
-        cmd += _add_file(dep, build_output + "/WEB-INF/lib")
+        cmd += _add_dep(dep, build_output + "/WEB-INF/lib")
         inputs.append(dep)
 
     for jar in ctxt.files._appengine_deps:
-        cmd += _add_file(jar, build_output + "/WEB-INF/lib")
+        cmd += _add_dep(jar, build_output + "/WEB-INF/lib")
         inputs.append(jar)
 
     inputs += ctxt.files.data
     for res in ctxt.files.data:
         # Add the data file
-        cmd += _add_file(res, build_output, path = data_path)
+        cmd += _add_data_file(res, build_output, data_path)
 
     cmd += _make_war(zipper, build_output, war)
 
@@ -193,6 +195,13 @@ def _war_impl(ctxt):
         for jar in ctxt.files._appengine_deps
     ]
 
+    data_files = []
+    for target in ctxt.attr.data:
+        for file in target.files.to_list():
+            path = _relative_path(file)
+            if not path.startswith(data_path):
+                data_files.append(path)
+
     substitutions = {
         "%{workspace_name}": ctxt.workspace_name,
         "%{zipper}": ctxt.file._zipper.short_path,
@@ -202,6 +211,7 @@ def _war_impl(ctxt):
         "%{classpath}": (":".join(classpath)),
         "%{data_path}": data_path,
         "%{local_jvm_flags}": (" ".join(ctxt.attr.local_jvm_flags)),
+        "%{data_files}": (":".join(data_files)),
     }
 
     ctxt.actions.expand_template(
