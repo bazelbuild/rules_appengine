@@ -85,7 +85,11 @@ def _relative_path(file):
     return file.path if file.is_source else file.short_path
 
 def _add_dep(dep_file, dep_output_dir):
-    output_path = "%s/%s" % (dep_output_dir, dep_file.basename)
+    filename = dep_file.basename
+    if dep_file.owner.package:
+        package_prefix = dep_file.owner.package.replace("/", "_").replace("=", "_")
+        filename = "%s_%s" % (package_prefix, filename)
+    output_path = "%s/%s" % (dep_output_dir, filename)
     return _link_file(dep_file.path, output_path)
 
 def _add_data_file(data_file, output_dir, path):

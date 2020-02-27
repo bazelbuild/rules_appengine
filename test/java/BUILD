@@ -7,6 +7,7 @@ appengine_war(
         ":web-inf",
         "//test/java/data:gen-data",
         "//test/java/data:test-data",
+        "//test/resource",
     ],
     data_path = "/test/java",
     jars = [":app_deploy.jar"],
