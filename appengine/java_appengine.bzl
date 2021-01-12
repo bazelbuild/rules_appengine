@@ -355,7 +355,7 @@ load(
 
 default_java_toolchain(
     name = "jdk8",
-    tools = ["@bazel_tools//third_party/java/jdk/langtools:javac_jar"],
+    tools = ["@bazel_tools//tools/jdk:javac_jar"],
     jvm_opts = JDK8_JVM_OPTS + [
         "-XX:+TieredCompilation",
         "-XX:TieredStopAtLevel=1",
