@@ -318,7 +318,7 @@ def java_appengine_repositories(
         licenses = ["reciprocal"],  # CDDL License
     )
 
-    if not versions.get() or not versions.is_at_most("4.0.0", versions.get()): # development or version > 4.0.0
+    if not versions.get() or versions.is_at_least("5.0.0", versions.get()): # development or version >= 5.0.0
         build_file_content = """
 load(
     "@bazel_tools//tools/jdk:default_java_toolchain.bzl",
@@ -339,7 +339,7 @@ default_java_toolchain(
     visibility = ["//visibility:public"],
 )
 """
-        # Bazel <= 4.0.0
+        # Bazel < 5.0.0
 
     else:
         build_file_content = """
