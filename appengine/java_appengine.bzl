@@ -130,7 +130,9 @@ def _war_impl(ctxt):
        - the war
        - the script to deploy
     """
+
     zipper = ctxt.file._zipper
+    _java_runtime = ctxt.attr._java[java_common.JavaRuntimeInfo]
 
     data_path = ctxt.attr.data_path
     if not data_path:
@@ -198,7 +200,7 @@ def _war_impl(ctxt):
         "%{workspace_name}": ctxt.workspace_name,
         "%{zipper}": ctxt.file._zipper.short_path,
         "%{war}": ctxt.outputs.war.short_path,
-        "%{java}": ctxt.file._java.short_path,
+        "%{java}": _java_runtime.java_executable_runfiles_path,
         "%{appengine_sdk}": appengine_sdk,
         "%{classpath}": (":".join(classpath)),
         "%{data_path}": data_path,
@@ -218,19 +220,22 @@ def _war_impl(ctxt):
         is_executable = True,
     )
 
-    runfiles = ctxt.runfiles(files = [war, executable] +
-                                     transitive_deps.to_list() +
-                                     inputs +
-                                     ctxt.files._appengine_sdk +
-                                     [ctxt.file._java, ctxt.file._zipper])
+    runfiles = ctxt.runfiles(
+        files = [war, executable] +
+                inputs +
+                ctxt.files._appengine_sdk +
+                [ctxt.file._zipper],
+        transitive_files = depset(
+            transitive = [transitive_deps, _java_runtime.files]
+        ),
+    )
     return struct(runfiles = runfiles)
 
 appengine_war_base = rule(
     _war_impl,
     attrs = {
         "_java": attr.label(
-            default = Label("@bazel_tools//tools/jdk:java"),
-            allow_single_file = True,
+            default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
         ),
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
@@ -318,7 +323,7 @@ def java_appengine_repositories(
         licenses = ["reciprocal"],  # CDDL License
     )
 
-    if not versions.get() or versions.is_at_least("5.0.0", versions.get()): # development or version >= 5.0.0
+    if not versions.get() or versions.is_at_least("5.0.0", versions.get()):  # development or version >= 5.0.0
         build_file_content = """
 load(
     "@bazel_tools//tools/jdk:default_java_toolchain.bzl",
