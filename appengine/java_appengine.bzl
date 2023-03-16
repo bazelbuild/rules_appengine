@@ -323,19 +323,19 @@ def java_appengine_repositories(
         licenses = ["reciprocal"],  # CDDL License
     )
 
-    if not versions.get() or versions.is_at_least("5.0.0", versions.get()):  # development or version >= 5.0.0
+    if not versions.get() or versions.is_at_least("6.0.0", versions.get()):  # development or version >= 6.0.0
         build_file_content = """
 load(
     "@bazel_tools//tools/jdk:default_java_toolchain.bzl",
     "default_java_toolchain",
-    "JVM8_TOOLCHAIN_CONFIGURATION",
-    "JDK8_JVM_OPTS"
+    "DEFAULT_TOOLCHAIN_CONFIGURATION",
+    "DEFAULT_JAVACOPTS"
 )
 
 default_java_toolchain(
     name = "jdk8",
-    configuration = JVM8_TOOLCHAIN_CONFIGURATION,
-    jvm_opts = JDK8_JVM_OPTS + [
+    configuration = DEFAULT_TOOLCHAIN_CONFIGURATION,
+    jvm_opts = DEFAULT_JAVACOPTS + [
         "-XX:+TieredCompilation",
         "-XX:TieredStopAtLevel=1",
     ],
@@ -344,7 +344,7 @@ default_java_toolchain(
     visibility = ["//visibility:public"],
 )
 """
-        # Bazel < 5.0.0
+        # Bazel < 6.0.0
 
     else:
         build_file_content = """
