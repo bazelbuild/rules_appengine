@@ -1,3 +1,6 @@
+🚨 rules_appengine is no longer maintained.
+
+
 [![Build status](https://badge.buildkite.com/98ffeea8dc7631a8a7d7af13cbe7570a7209a98ef18fe3cbc5.svg)](https://buildkite.com/bazel/appengine-rules-appengine-postsubmit)
 
 
